@@ -3,59 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administración | Ruta 57 Box</title>
+  <title>Panel Administrativo | Ruta 57 Box</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #f4f5f7; padding: 20px; color: #172b4d; }
+    :root {
+      --primary: #0052cc;
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #172b4d;
+      --accent: #de350b;
+      --success: #00875a;
+    }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
     .container { max-width: 1000px; margin: 0 auto; }
-    .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-actions { display: flex; gap: 10px; }
+    .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; }
+    .btn-secondary { background: #6b778c; }
+    .btn-danger { background: var(--accent); }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
     th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
     th { background: #fafbfc; }
-    .btn { background: #0052cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-    input, select { padding: 4px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .hidden { display: none; }
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <div class="container">
-    <h2>Panel de Administración - Ruta 57 Box</h2>
+  <!-- PANTALLA DE CARGA INICIAL -->
+  <div id="loadingState" style="text-align: center; margin-top: 50px;">
+    <h2>Verificando credenciales de administrador...</h2>
+  </div>
 
-    <!-- RECEPCIÓNY GESTIÓN DE PAQUETES -->
+  <!-- CONTENIDO PROTEGIDO -->
+  <div class="container hidden" id="adminContent">
+    <div class="header">
+      <h2>⚙️ Panel Administrativo - Ruta 57 Box</h2>
+      <div class="header-actions">
+        <a href="panel.html" class="btn btn-secondary">&leftarrow; Ir a Casillero</a>
+        <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </div>
+
+    <!-- GESTIÓN DE CLIENTES Y PROMOCIÓN A ADMIN -->
     <div class="card">
-      <h3>Paquetes y Pre-alertas Recibidas</h3>
+      <h3>Clientes Registrados</h3>
       <table>
         <thead>
           <tr>
-            <th>Usuario / Casillero</th>
-            <th>Guía / Tienda</th>
-            <th>Contenido</th>
-            <th>Peso (Kg)</th>
-            <th>Estado</th>
-            <th>Acción</th>
+            <th>Nombre</th>
+            <th>Cédula</th>
+            <th>Casillero</th>
+            <th>Rol Actual</th>
+            <th>Cambiar Rol</th>
           </tr>
         </thead>
-        <tbody id="tablaAdminPaquetes">
-          <tr><td colspan="6">Cargando datos...</td></tr>
+        <tbody id="tablaUsuarios">
+          <tr><td colspan="5">Cargando usuarios...</td></tr>
         </tbody>
       </table>
     </div>
 
-    <!-- REVISIÓN DE PAGOS -->
+    <!-- GESTIÓN DE PAQUETES -->
     <div class="card">
-      <h3>Pagos Reportados</h3>
+      <h3>Gestión Global de Paquetes</h3>
       <table>
         <thead>
           <tr>
-            <th>Usuario</th>
-            <th>Método</th>
-            <th>Referencia</th>
-            <th>Monto</th>
+            <th>Cliente</th>
+            <th>Guía</th>
+            <th>Contenido</th>
+            <th>Peso (Kg)</th>
+            <th>Flete ($)</th>
             <th>Estado</th>
+            <th>Acción</th>
           </tr>
         </thead>
-        <tbody id="tablaAdminPagos">
-          <tr><td colspan="5">Cargando pagos...</td></tr>
+        <tbody id="tablaPaquetesAdmin">
+          <tr><td colspan="7">Cargando paquetes...</td></tr>
         </tbody>
       </table>
     </div>
@@ -68,82 +97,118 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    async function cargarDatosAdmin() {
-      // 1. Obtener todos los paquetes
-      const { data: paquetes, error } = await _supabase
-        .from('paquetes')
-        .select('*, perfiles(nombre_completo, codigo_casillero)')
+    // VALIDACIÓN DE SEGURIDAD ESTRICTA
+    async function validarAccesoAdmin() {
+      const { data: { session } } = await _supabase.auth.getSession();
 
-      const tbodyPaquetes = document.getElementById('tablaAdminPaquetes')
-      tbodyPaquetes.innerHTML = ''
-
-      if (paquetes) {
-        paquetes.forEach(p => {
-          const cliente = p.perfiles ? `${p.perfiles.nombre_completo} (${p.perfiles.codigo_casillero})` : 'Desconocido'
-          tbodyPaquetes.innerHTML += `
-            <tr>
-              <td>${cliente}</td>
-              <td><strong>${p.guia_transportadora}</strong><br><small>${p.tienda}</small></td>
-              <td>${p.contenido}</td>
-              <td><input type="number" id="peso_${p.id}" value="${p.peso_kg}" style="width: 60px;"> kg</td>
-              <td>
-                <select id="estado_${p.id}">
-                  <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
-                  <option value="En Bodega Cúcuta" ${p.estado === 'En Bodega Cúcuta' ? 'selected' : ''}>En Bodega Cúcuta</option>
-                  <option value="En Tránsito" ${p.estado === 'En Tránsito' ? 'selected' : ''}>En Tránsito</option>
-                  <option value="Entregado" ${p.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
-                </select>
-              </td>
-              <td>
-                <button class="btn" onclick="actualizarPaquete('${p.id}')">Guardar</button>
-              </td>
-            </tr>
-          `
-        })
+      if (!session) {
+        alert("Acceso denegado: Inicia sesión primero.");
+        window.location.href = "index.html";
+        return;
       }
 
-      // 2. Obtener pagos
-      const { data: pagos } = await _supabase
-        .from('pagos')
-        .select('*, perfiles(nombre_completo)')
+      const { data: perfil, error } = await _supabase
+        .from('perfiles')
+        .select('rol')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      const tbodyPagos = document.getElementById('tablaAdminPagos')
-      tbodyPagos.innerHTML = ''
-
-      if (pagos) {
-        pagos.forEach(pg => {
-          const cliente = pg.perfiles ? pg.perfiles.nombre_completo : 'Desconocido'
-          tbodyPagos.innerHTML += `
-            <tr>
-              <td>${cliente}</td>
-              <td>${pg.metodo_pago}</td>
-              <td><strong>${pg.referencia}</strong></td>
-              <td>$${pg.monto}</td>
-              <td>${pg.estado}</td>
-            </tr>
-          `
-        })
+      if (error || !perfil || perfil.rol !== 'admin') {
+        alert("Acceso Restringido: Tu cuenta no posee permisos de Administrador.");
+        window.location.href = "panel.html";
+        return;
       }
+
+      // Si todo es correcto, muestra el contenido
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('adminContent').classList.remove('hidden');
+
+      cargarUsuarios();
+      cargarPaquetesAdmin();
     }
 
-    async function actualizarPaquete(id) {
-      const nuevoPeso = document.getElementById(`peso_${id}`).value
-      const nuevoEstado = document.getElementById(`estado_${id}`).value
+    async function cargarUsuarios() {
+      const { data: usuarios } = await _supabase.from('perfiles').select('*');
+      const tbody = document.getElementById('tablaUsuarios');
+      tbody.innerHTML = '';
 
-      const { error } = await _supabase
-        .from('paquetes')
-        .update({ peso_kg: nuevoPeso, estado: nuevoEstado })
-        .eq('id', id)
+      if (!usuarios) return;
 
-      if (error) {
-        alert('Error al actualizar: ' + error.message)
-      } else {
-        alert('Paquete actualizado correctamente')
-        cargarDatosAdmin()
-      }
+      usuarios.forEach(u => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${u.nombre_completo}</td>
+            <td>${u.cedula}</td>
+            <td><strong>${u.codigo_casillero}</strong></td>
+            <td><span style="font-weight:bold; color: ${u.rol === 'admin' ? '#36b37e' : '#6b778c'}">${u.rol}</span></td>
+            <td>
+              <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="cambiarRol('${u.id}', '${u.rol === 'admin' ? 'cliente' : 'admin'}')">
+                Cambiar a ${u.rol === 'admin' ? 'Cliente' : 'Admin'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
     }
 
-    cargarDatosAdmin()
+    async function cambiarRol(userId, nuevoRol) {
+      await _supabase.from('perfiles').update({ rol: nuevoRol }).eq('id', userId);
+      cargarUsuarios();
+    }
+
+    async function cargarPaquetesAdmin() {
+      const { data: paquetes } = await _supabase.from('paquetes').select('*, perfiles(nombre_completo, codigo_casillero)');
+      const tbody = document.getElementById('tablaPaquetesAdmin');
+      tbody.innerHTML = '';
+
+      if (!paquetes) return;
+
+      paquetes.forEach(p => {
+        const cliente = p.perfiles ? `${p.perfiles.nombre_completo} (${p.perfiles.codigo_casillero})` : 'Desconocido';
+        tbody.innerHTML += `
+          <tr>
+            <td>${cliente}</td>
+            <td>${p.guia_transportadora}</td>
+            <td>${p.contenido}</td>
+            <td><input type="number" step="0.1" id="peso_${p.id}" value="${p.peso_kg || ''}" style="width:70px"></td>
+            <td><input type="number" step="0.01" id="flete_${p.id}" value="${p.monto_flete || ''}" style="width:70px"></td>
+            <td>
+              <select id="estado_${p.id}">
+                <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
+                <option value="Recibido en Bodega" ${p.estado === 'Recibido en Bodega' ? 'selected' : ''}>Recibido en Bodega</option>
+                <option value="En Tránsito" ${p.estado === 'En Tránsito' ? 'selected' : ''}>En Tránsito</option>
+                <option value="Entregado" ${p.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="actualizarPaquete('${p.id}')">Guardar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function actualizarPaquete(paqueteId) {
+      const peso = document.getElementById(`peso_${paqueteId}`).value;
+      const flete = document.getElementById(`flete_${paqueteId}`).value;
+      const estado = document.getElementById(`estado_${paqueteId}`).value;
+
+      await _supabase.from('paquetes').update({
+        peso_kg: peso ? parseFloat(peso) : null,
+        monto_flete: flete ? parseFloat(flete) : null,
+        estado: estado
+      }).eq('id', paqueteId);
+
+      alert('Paquete actualizado');
+      cargarPaquetesAdmin();
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      await _supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    validarAccesoAdmin();
   </script>
 </body>
 </html>
