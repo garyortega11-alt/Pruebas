@@ -94,9 +94,10 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // *** CREDENCIALES CONFIGURADAS DE RUTA57BOX ***
+    // Configuración con credenciales de Ruta57Box
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
-    const SUPABASE_ANON_KEY = 'sb_publishable_rF2EYSwp_VavWqtwPgJ6wA_KSnjA_Pg' // Asegúrate de pegar aquí la clave Publishable completa copiada de tu panel
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc' 
+    
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     const form = document.getElementById('registroForm')
@@ -121,14 +122,14 @@
       const codigoCasillero = generarCodigoCasillero()
 
       try {
-        // 1. Crear usuario en Auth de Supabase
+        // 1. Crear usuario en la autenticación de Supabase
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password
         })
         if (authError) throw authError
 
-        // 2. Guardar datos adicionales en la tabla 'perfiles'
+        // 2. Insertar perfil con código de casillero
         const { error: perfilError } = await supabase
           .from('perfiles')
           .insert([{
@@ -139,9 +140,9 @@
           }])
         if (perfilError) throw perfilError
 
-        // Respuesta exitosa
+        // Éxito
         mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerHTML = `¡Cuenta creada con éxito! Tu código de casillero asignado es: <strong>${codigoCasillero}</strong>`
+        mensajeDiv.innerHTML = `¡Cuenta creada exitosamente! Tu código de casillero asignado es: <strong>${codigoCasillero}</strong>`
         mensajeDiv.style.display = 'block'
         form.reset()
 
