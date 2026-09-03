@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ruta 57 Box | Acceso a Casillero</title>
+  <title>Acceso | Ruta 57 Box</title>
   <style>
     :root {
       --primary: #0052cc;
-      --background: #f4f5f7;
+      --bg: #f4f5f7;
       --card: #ffffff;
       --text: #172b4d;
+      --accent: #de350b;
     }
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background-color: var(--background);
+      background: var(--bg);
       color: var(--text);
       display: flex;
       justify-content: center;
@@ -21,157 +22,115 @@
       min-height: 100vh;
       margin: 0;
       padding: 20px;
-      position: relative;
     }
-
-    /* BOTÓN FLOTANTE CANDADO ADMIN */
-    .admin-access-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: white;
-      border: 1px solid #dfe1e6;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: all 0.2s ease;
-      color: #6b778c;
-      text-decoration: none;
-    }
-    .admin-access-btn:hover {
-      background: #f4f5f7;
-      color: var(--primary);
-      transform: scale(1.08);
-    }
-
-    .card {
+    .auth-card {
       background: var(--card);
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      position: relative;
     }
-    h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 20px; }
-    
-    .tabs {
+    .header-row {
       display: flex;
-      border-bottom: 2px solid #dfe1e6;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
     }
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
+    .header-row h2 { margin: 0; color: var(--primary); }
+    .btn-lock {
       background: none;
-      border: none;
-      outline: none;
-      font-weight: bold;
-      color: #6b778c;
+      border: 1px solid #dfe1e6;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
       cursor: pointer;
-      font-size: 0.95rem;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b778c;
       transition: all 0.2s ease;
     }
-    .tab-btn.active {
+    .btn-lock:hover {
+      background: #ebecf0;
       color: var(--primary);
-      border-bottom-color: var(--primary);
     }
-    
     .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+    label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
     input {
       width: 100%;
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid #dfe1e6;
       border-radius: 4px;
       box-sizing: border-box;
     }
-    .btn-main {
+    .btn {
       width: 100%;
-      background-color: var(--primary);
+      background: var(--primary);
       color: white;
       border: none;
       padding: 12px;
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 1rem;
       margin-top: 10px;
     }
-    .btn-main:hover { opacity: 0.9; }
-    
-    .alert {
-      padding: 10px;
-      border-radius: 4px;
+    .btn:hover { background: #0065ff; }
+    .toggle-link {
+      text-align: center;
       margin-top: 15px;
-      display: none;
       font-size: 0.9rem;
     }
-    .alert-success { background: #e3fcef; color: #006644; }
-    .alert-error { background: #ffebe6; color: #bf2600; }
+    .toggle-link a { color: var(--primary); text-decoration: none; font-weight: bold; }
   </style>
-  
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- BOTÓN CANDADO PARA IR AL PANEL ADMIN -->
-  <a href="admin.html" class="admin-access-btn" title="Acceso Administrativo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-    </svg>
-  </a>
-
-  <div class="card">
-    <h2>Ruta 57 Box</h2>
-
-    <div class="tabs">
-      <button type="button" class="tab-btn active" id="tabRegistro">Crear Cuenta</button>
-      <button type="button" class="tab-btn" id="tabLogin">Iniciar Sesión</button>
+  <div class="auth-card">
+    <div class="header-row">
+      <h2 id="formTitle">Iniciar Sesión</h2>
+      
+      <!-- CANDADO PROTEGIDO -->
+      <button onclick="solicitarAccesoAdmin()" class="btn-lock" title="Acceso Administrativo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </button>
     </div>
 
-    <!-- REGISTRO -->
-    <form id="registroForm">
-      <div class="form-group">
-        <label for="nombre">Nombre Completo</label>
-        <input type="text" id="nombre" required placeholder="Ej. Pedro Pérez">
+    <!-- FORMULARIO LOGIN / REGISTRO -->
+    <form id="authForm">
+      <div class="form-group" id="groupNombre" style="display: none;">
+        <label>Nombre Completo</label>
+        <input type="text" id="nombreCompleto" placeholder="Ej. Juan Pérez">
       </div>
-      <div class="form-group">
-        <label for="cedula">Cédula o Pasaporte</label>
-        <input type="text" id="cedula" required placeholder="Ej. V-12345678">
+
+      <div class="form-group" id="groupCedula" style="display: none;">
+        <label>Cédula / Documento</label>
+        <input type="text" id="cedula" placeholder="Ej. V-12345678">
       </div>
+
       <div class="form-group">
-        <label for="email">Correo Electrónico</label>
+        <label>Correo Electrónico</label>
         <input type="email" id="email" required placeholder="correo@ejemplo.com">
       </div>
+
       <div class="form-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" required minlength="6">
+        <label>Contraseña</label>
+        <input type="password" id="password" required placeholder="••••••••">
       </div>
-      <button type="submit" class="btn-main" id="btnRegistro">Crear mi Casillero Gratis</button>
+
+      <button type="submit" class="btn" id="btnSubmit">Entrar</button>
     </form>
 
-    <!-- INICIO SESIÓN -->
-    <form id="loginForm" style="display: none;">
-      <div class="form-group">
-        <label for="loginEmail">Correo Electrónico</label>
-        <input type="email" id="loginEmail" required placeholder="correo@ejemplo.com">
-      </div>
-      <div class="form-group">
-        <label for="loginPassword">Contraseña</label>
-        <input type="password" id="loginPassword" required>
-      </div>
-      <button type="submit" class="btn-main" id="btnLogin">Ingresar a mi Casillero</button>
-    </form>
-
-    <div id="mensaje" class="alert"></div>
+    <div class="toggle-link">
+      <span id="toggleText">¿No tienes casillero?</span>
+      <a href="#" id="toggleBtn" onclick="toggleMode(event)">Regístrate</a>
+    </div>
   </div>
 
   <script>
@@ -181,133 +140,68 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    const registroForm = document.getElementById('registroForm')
-    const loginForm = document.getElementById('loginForm')
-    const mensajeDiv = document.getElementById('mensaje')
-    const tabRegistro = document.getElementById('tabRegistro')
-    const tabLogin = document.getElementById('tabLogin')
+    let isRegister = false
 
-    tabRegistro.addEventListener('click', () => {
-      mensajeDiv.style.display = 'none'
-      registroForm.style.display = 'block'
-      loginForm.style.display = 'none'
-      tabRegistro.classList.add('active')
-      tabLogin.classList.remove('active')
-    })
-
-    tabLogin.addEventListener('click', () => {
-      mensajeDiv.style.display = 'none'
-      registroForm.style.display = 'none'
-      loginForm.style.display = 'block'
-      tabLogin.classList.add('active')
-      tabRegistro.classList.remove('active')
-    })
-
-    function generarCodigoCasillero() {
-      const num = Math.floor(1000 + Math.random() * 9000)
-      return `VEN-${num}`
+    function toggleMode(e) {
+      e.preventDefault()
+      isRegister = !isRegister
+      
+      document.getElementById('formTitle').innerText = isRegister ? 'Registro de Casillero' : 'Iniciar Sesión'
+      document.getElementById('btnSubmit').innerText = isRegister ? 'Crear Casillero' : 'Entrar'
+      document.getElementById('toggleText').innerText = isRegister ? '¿Ya tienes casillero?' : '¿No tienes casillero?'
+      document.getElementById('toggleBtn').innerText = isRegister ? 'Inicia Sesión' : 'Regístrate'
+      
+      document.getElementById('groupNombre').style.display = isRegister ? 'block' : 'none'
+      document.getElementById('groupCedula').style.display = isRegister ? 'block' : 'none'
     }
 
-    // REGISTRO DE USUARIOS
-    registroForm.addEventListener('submit', async (e) => {
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault()
-      const btn = document.getElementById('btnRegistro')
-      btn.disabled = true
-      btn.innerText = 'Procesando...'
-      mensajeDiv.style.display = 'none'
+      const email = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value.trim()
 
-      const nombre = document.getElementById('nombre').value
-      const cedula = document.getElementById('cedula').value
-      const email = document.getElementById('email').value
-      const password = document.getElementById('password').value
-      const codigoCasillero = generarCodigoCasillero()
+      if (isRegister) {
+        const nombre = document.getElementById('nombreCompleto').value.trim()
+        const cedula = document.getElementById('cedula').value.trim()
+        
+        // Generar Código de casillero aleatorio
+        const codigoCasillero = 'VEN-' + Math.floor(1000 + Math.random() * 9000)
 
-      try {
-        const { data: authData, error: authError } = await _supabase.auth.signUp({
-          email,
-          password
-        })
-        if (authError) throw authError
+        const { data, error } = await _supabase.auth.signUp({ email, password })
 
-        // Se inserta el perfil con rol 'cliente' por defecto
-        const { error: perfilError } = await _supabase
-          .from('perfiles')
-          .insert([{
-            id: authData.user.id,
+        if (error) { alert('Error al registrar: ' + error.message); return; }
+
+        if (data.user) {
+          await _supabase.from('perfiles').insert([{
+            id: data.user.id,
             nombre_completo: nombre,
             cedula: cedula,
             codigo_casillero: codigoCasillero,
             rol: 'cliente'
           }])
-        if (perfilError) throw perfilError
-
-        mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerHTML = `¡Cuenta creada con éxito! Redirigiendo...`
-        mensajeDiv.style.display = 'block'
-        registroForm.reset()
-
-        setTimeout(() => {
+          alert('¡Registro exitoso! Tu código de casillero es: ' + codigoCasillero)
           window.location.href = 'panel.html'
-        }, 1000)
+        }
+      } else {
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password })
 
-      } catch (err) {
-        mensajeDiv.className = 'alert alert-error'
-        mensajeDiv.innerText = `Error: ${err.message}`
-        mensajeDiv.style.display = 'block'
-      } finally {
-        btn.disabled = false
-        btn.innerText = 'Crear mi Casillero Gratis'
+        if (error) {
+          alert('Error de acceso: Credenciales inválidas.')
+        } else {
+          window.location.href = 'panel.html'
+        }
       }
     })
 
-    // INICIO DE SESIÓN CON REDIRECCIÓN SEGÚN ROL
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const btn = document.getElementById('btnLogin')
-      btn.disabled = true
-      btn.innerText = 'Ingresando...'
-      mensajeDiv.style.display = 'none'
-
-      const email = document.getElementById('loginEmail').value
-      const password = document.getElementById('loginPassword').value
-
-      try {
-        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-          email,
-          password
-        })
-
-        if (authError) throw authError
-
-        // Consultar el rol en perfiles
-        const { data: perfil } = await _supabase
-          .from('perfiles')
-          .select('rol')
-          .eq('id', authData.user.id)
-          .single()
-
-        mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerText = '¡Sesión iniciada correctamente! Redirigiendo...'
-        mensajeDiv.style.display = 'block'
-
-        setTimeout(() => {
-          // Si el usuario tiene rol 'admin', va directo a admin.html
-          if (perfil && perfil.rol === 'admin') {
-            window.location.href = 'admin.html'
-          } else {
-            window.location.href = 'panel.html'
-          }
-        }, 800)
-
-      } catch (err) {
-        mensajeDiv.className = 'alert alert-error'
-        mensajeDiv.innerText = `Error: ${err.message}`
-        mensajeDiv.style.display = 'block'
-      } finally {
-        btn.disabled = false
-        btn.innerText = 'Ingresar a mi Casillero'
+    // Función de seguridad del Candado
+    function solicitarAccesoAdmin() {
+      const clave = prompt("Ingrese la clave de acceso administrativo:");
+      if (clave === "Ruta57Admin*") {
+        window.location.href = "admin.html";
+      } else if (clave !== null) {
+        alert("Clave incorrecta. Acceso denegado.");
       }
-    })
+    }
   </script>
 </body>
 </html>
