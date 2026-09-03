@@ -3,134 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Casillero | Ruta 57 Box</title>
+  <title>Panel de Cliente | Casilleros Ruta 57 Box</title>
   <style>
     :root {
-      --primary: #0052cc;
-      --bg: #f4f5f7;
+      --primary: #004581;
+      --primary-hover: #003360;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --text: #172b4d;
-      --accent: #de350b;
-      --success: #00875a;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --accent: #e11d48;
+      --success: #16a34a;
     }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .header-actions { display: flex; gap: 10px; }
-    .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
-    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.9; }
-    .btn-secondary { background: #6b778c; }
-    .btn-danger { background: var(--accent); }
-    .btn-success { background: var(--success); }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
-    th { background: #fafbfc; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group.full { grid-column: span 2; }
-    label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.85rem; }
-    input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .hidden { display: none; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; }
-    .badge-pre { background: #ffab00; }
-    .badge-bodega { background: #0052cc; }
-    .badge-transito { background: #00b8d9; }
-    .badge-entregado { background: var(--success); }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Sidebar */
+    aside { width: 260px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; }
+    .sidebar-top { padding: 20px; }
+    .logo-area { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+    .logo-icon { background: var(--primary); color: #fff; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
+    .logo-text { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    
+    .nav-menu { display: flex; flex-direction: column; gap: 6px; }
+    .nav-item { padding: 12px 16px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+    .nav-item:hover { background: #f1f5f9; color: var(--primary); }
+    .nav-item.active { background: #eff6ff; color: var(--primary); }
 
-    /* ESTILOS PARA MODAL PROFESIONAL */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(9, 30, 66, 0.54); display: flex; justify-content: center; align-items: center;
-      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
-    }
+    .sidebar-bottom { padding: 20px; border-top: 1px solid #e2e8f0; }
+    .user-info { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; word-break: break-all; }
+    .btn-logout { background: #ffeeef; color: var(--accent); border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-logout:hover { background: #fde8e8; }
+
+    /* Main Content */
+    main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 40px; }
+    .header-welcome { margin-bottom: 30px; }
+    .header-welcome h1 { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 0 0 6px 0; }
+    .header-welcome p { color: var(--muted); margin: 0; font-size: 1rem; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    .card { background: var(--card); padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 24px; }
+    .card h3 { margin-top: 0; color: var(--primary); font-size: 1.25rem; margin-bottom: 20px; }
+
+    .casillero-box { background: #f8fafc; border: 2px dashed var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .field-label { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+    .field-value { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #334155; }
+    input, select, textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); background-color: #fff; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,69,129,0.15); }
+    
+    .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; }
+    .btn:hover { background: var(--primary-hover); }
+
+    /* Modal Alertas */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-box {
-      background: #fff; width: 100%; max-width: 380px; padding: 24px;
-      border-radius: 12px; box-shadow: 0 8px 24px rgba(9, 30, 66, 0.25);
-      text-align: center; transform: translateY(-10px); transition: transform 0.2s ease;
-    }
-    .modal-overlay.active .modal-box { transform: translateY(0); }
-    .modal-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; color: var(--text); }
-    .modal-text { font-size: 0.95rem; color: #5e6c84; margin-bottom: 20px; line-height: 1.4; }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .modal-box { background: #fff; width: 100%; max-width: 400px; padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- MODAL / POPUP PERSONALIZADO -->
   <div class="modal-overlay" id="customModal">
     <div class="modal-box">
-      <div class="modal-title" id="modalTitle">Aviso</div>
-      <div class="modal-text" id="modalText">Mensaje del sistema.</div>
-      <div class="modal-actions" id="modalActions">
-        <button class="btn" style="margin-top:0;" onclick="cerrarModal()">Aceptar</button>
-      </div>
+      <div class="modal-title" id="modalTitle" style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Aviso</div>
+      <div class="modal-text" id="modalText" style="font-size:0.92rem; color:var(--muted); margin-bottom:20px;">Mensaje</div>
+      <button class="btn" onclick="cerrarModal()">Aceptar</button>
     </div>
   </div>
 
-  <!-- PANTALLA DE CARGA INICIAL -->
-  <div id="loadingState" style="text-align: center; margin-top: 50px;">
-    <h2>Cargando tu casillero...</h2>
-  </div>
-
-  <!-- CONTENIDO DEL CASILLERO -->
-  <div class="container hidden" id="panelContent">
-    <div class="header">
-      <div>
-        <h2>📦 Mi Casillero: <span id="lblCasillero" style="color: var(--primary);">---</span></h2>
-        <p style="margin: 0; color: #5e6c84;" id="lblNombre">Cargando perfil...</p>
+  <aside>
+    <div class="sidebar-top">
+      <div class="logo-area">
+        <div class="logo-icon">57</div>
+        <div class="logo-text">Ruta 57 Box</div>
       </div>
-      <div class="header-actions">
-        <a href="admin.html" class="btn btn-secondary hidden" id="btnAdminLink">Panel Admin</a>
-        <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
+      <div class="nav-menu">
+        <div class="nav-item active" onclick="cambiarVista('dashboard', this)">📦 Mi Casillero</div>
+        <div class="nav-item" onclick="cambiarVista('prealertar', this)">➕ Prealertar Paquete</div>
+        <div class="nav-item" onclick="cambiarVista('misPaquetes', this)">📋 Mis Paquetes</div>
+        <div class="nav-item" onclick="cambiarVista('perfil', this)">⚙️ Mis Datos</div>
       </div>
     </div>
+    <div class="sidebar-bottom">
+      <div class="user-info" id="userEmailDisplay">Cargando...</div>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </aside>
 
-    <!-- FORMULARIO DE PRE-ALERTA -->
-    <div class="card">
-      <h3>Pre-alertar Nuevo Paquete</h3>
-      <form id="formPrealerta" onsubmit="prealertarPaquete(event)">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Guía de la Transportadora</label>
-            <input type="text" id="guia" required placeholder="Ej: 1Z99999999999999">
+  <main>
+    <div class="header-welcome">
+      <h1 id="welcomeTitle">Bienvenido</h1>
+      <p>Administra las operaciones de tus cargas internacionales.</p>
+    </div>
+
+    <!-- Vista 1: Dashboard / Mi Casillero -->
+    <div id="dashboard" class="view-section active">
+      <div class="card">
+        <h3>Tu Dirección de Casillero en Miami</h3>
+        <p style="color: var(--muted); margin-bottom: 20px; font-size:0.92rem;">Utiliza esta dirección exacta al realizar tus compras en tiendas online de USA o el mundo.</p>
+        
+        <div class="casillero-box">
+          <div>
+            <div class="field-label">Nombre del Destinatario</div>
+            <div class="field-value" id="lblNombre">Cargando...</div>
           </div>
-          <div class="form-group">
-            <label>Transportadora (Courier en USA)</label>
-            <input type="text" id="transportadora" placeholder="Ej: Amazon, FedEx, UPS">
+          <div>
+            <div class="field-label">Código Personal</div>
+            <div class="field-value" id="lblCasillero" style="color: var(--primary);">VEN-XXXX</div>
           </div>
-          <div class="form-group full">
-            <label>Contenido del Paquete</label>
-            <textarea id="contenido" rows="2" required placeholder="Ej: 2 Zapatos deportivos, 1 Camisa"></textarea>
+          <div>
+            <div class="field-label">Dirección (Address Line 1)</div>
+            <div class="field-value">7252 NW 68th St</div>
+          </div>
+          <div>
+            <div class="field-label">Ciudad, Estado, Zip</div>
+            <div class="field-value">Miami, FL 33166</div>
+          </div>
+          <div>
+            <div class="field-label">Teléfono de Referencia</div>
+            <div class="field-value">+1 (305) 555-0199</div>
           </div>
         </div>
-        <button type="submit" class="btn btn-success">Registrar Pre-alerta</button>
-      </form>
+      </div>
     </div>
 
-    <!-- LISTA DE PAQUETES DEL CLIENTE -->
-    <div class="card">
-      <h3>Mis Paquetes y Pre-alertas</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Guía</th>
-            <th>Transportadora</th>
-            <th>Contenido</th>
-            <th>Peso</th>
-            <th>Flete</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody id="tablaMisPaquetes">
-          <tr><td colspan="6" style="text-align:center;">Cargando tus paquetes...</td></tr>
-        </tbody>
-      </table>
+    <!-- Vista 2: Prealertar Paquete -->
+    <div id="prealertar" class="view-section">
+      <div class="card" style="max-width: 600px;">
+        <h3>Prealertar Nueva Compra</h3>
+        <form onsubmit="registrarPrealerta(event)">
+          <div class="form-group">
+            <label>Empresa de Envío / Courier (Ej: Amazon Logistics, UPS, FedEx)</label>
+            <input type="text" id="paqCourier" required placeholder="Ej: USPS">
+          </div>
+          <div class="form-group">
+            <label>Número de Tracking / Seguimiento</label>
+            <input type="text" id="paqTracking" required placeholder="Ej: 940011189956...cią">
+          </div>
+          <div class="form-group">
+            <label>Valor Declarado ($ USD)</label>
+            <input type="number" step="0.01" id="paqValor" required placeholder="45.00">
+          </div>
+          <div class="form-group">
+            <label>Descripción del Contenido</label>
+            <textarea id="paqContenido" rows="3" required placeholder="Ej: 2 pares de zapatos deportivos"></textarea>
+          </div>
+          <button type="submit" class="btn">Registrar Prealerta</button>
+        </form>
+      </div>
     </div>
-  </div>
+
+    <!-- Vista 3: Mis Paquetes -->
+    <div id="misPaquetes" class="view-section">
+      <div class="card">
+        <h3>Historial de Paquetes y Prealertas</h3>
+        <p style="color: var(--muted);">Aquí visualizarás el estatus en tiempo real de cada paquete registrado en tu casillero.</p>
+        <div id="listaPaquetesContainer" style="margin-top: 20px; font-size: 0.95rem; color: var(--muted);">
+          Cargando tus paquetes...
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista 4: Mis Datos / Perfil -->
+    <div id="perfil" class="view-section">
+      <div class="card" style="max-width: 500px;">
+        <h3>Datos Personales</h3>
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" id="perfilNombre" readonly>
+        </div>
+        <div class="form-group">
+          <label>Cédula de Identidad</label>
+          <input type="text" id="perfilCedula" readonly>
+        </div>
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="text" id="perfilEmail" readonly>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
@@ -139,144 +198,136 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    let usuarioActual = null;
+    let currentUser = null;
+    let currentPerfil = null;
 
-    // FUNCIONES DE MODAL PROFESIONAL
-    function mostrarModal(titulo, texto, callback = null) {
-      document.getElementById('modalTitle').innerText = titulo;
-      document.getElementById('modalText').innerText = texto;
-      const actionsDiv = document.getElementById('modalActions');
-      
-      actionsDiv.innerHTML = `<button class="btn" style="margin-top:0;" id="btnModalOk">Aceptar</button>`;
-      
-      document.getElementById('customModal').classList.add('active');
-      
-      document.getElementById('btnModalOk').onclick = () => {
-        cerrarModal();
-        if (callback) callback();
-      };
-    }
-
-    function cerrarModal() {
-      document.getElementById('customModal').classList.remove('active');
-    }
-
-    // VERIFICAR SESIÓN Y CARGAR DATOS
     async function inicializarPanel() {
-      try {
-        const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-        if (sessionError || !session) {
-          window.location.href = "index.html";
-          return;
-        }
-
-        usuarioActual = session.user;
-
-        // Obtener perfil del usuario
-        const { data: perfil, error: perfilError } = await _supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', usuarioActual.id)
-          .maybeSingle();
-
-        if (perfilError || !perfil) {
-          mostrarModal("Error", "No se encontró el perfil de usuario.");
-          return;
-        }
-
-        document.getElementById('lblCasillero').innerText = perfil.codigo_casillero || 'S/N';
-        document.getElementById('lblNombre').innerText = `${perfil.nombre_completo} — Cédula: ${perfil.cedula || 'N/A'}`;
-
-        // Si es admin, mostrar enlace al panel de administración
-        if (perfil.rol === 'admin') {
-          document.getElementById('btnAdminLink').classList.remove('hidden');
-        }
-
-        document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('panelContent').classList.remove('hidden');
-
-        cargarMisPaquetes();
-      } catch (err) {
-        console.error("Error al inicializar:", err);
-        window.location.href = "index.html";
-      }
-    }
-
-    // CARGAR PAQUETES DEL CLIENTE
-    async function cargarMisPaquetes() {
-      const tbody = document.getElementById('tablaMisPaquetes');
-      
-      const { data: paquetes, error } = await _supabase
-        .from('paquetes')
-        .select('*')
-        .eq('user_id', usuarioActual.id)
-        .order('id', { ascending: false });
-
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar: ${error.message}</td></tr>`;
+      const { data: { session }, error } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
         return;
       }
+      currentUser = session.user;
+      document.getElementById('userEmailDisplay').innerText = currentUser.email;
 
-      if (!paquetes || paquetes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#666;">No tienes paquetes ni pre-alertas registradas.</td></tr>`;
-        return;
+      // Cargar perfil de la base de datos
+      const { data, err } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle();
+      if (data) {
+        currentPerfil = data;
+        document.getElementById('welcomeTitle').innerText = `Hola, ${data.nombre_completo}`;
+        document.getElementById('lblNombre').innerText = data.nombre_completo;
+        document.getElementById('lblCasillero').innerText = data.codigo_casillero || 'VEN-XXXX';
+        
+        document.getElementById('perfilNombre').value = data.nombre_completo;
+        document.getElementById('perfilCedula').value = data.cedula || 'No registrada';
+        document.getElementById('perfilEmail').value = currentUser.email;
       }
-
-      tbody.innerHTML = '';
-      paquetes.forEach(p => {
-        let badgeClass = 'badge-pre';
-        if (p.estado === 'Recibido en Bodega') badgeClass = 'badge-bodega';
-        else if (p.estado === 'En Tránsito') badgeClass = 'badge-transito';
-        else if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
-
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${p.guia_transportadora || 'Sin guía'}</strong></td>
-            <td>${p.transportadora || 'N/A'}</td>
-            <td>${p.contenido || 'Sin descripción'}</td>
-            <td>${p.peso_kg ? p.peso_kg + ' Kg' : 'Por calcular'}</td>
-            <td>${p.monto_flete ? '$' + p.monto_flete : 'Por calcular'}</td>
-            <td><span class="badge ${badgeClass}">${p.estado || 'Pre-alertado'}</span></td>
-          </tr>
-        `;
-      });
+      cargarMisPaquetes();
     }
 
-    // PRE-ALERTAR PAQUETE
-    async function prealertarPaquete(event) {
+    function cambiarVista(vistaId, elementoNav) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(vistaId).classList.add('active');
+      if (elementoNav) elementoNav.classList.add('active');
+    }
+
+    async function registrarPrealerta(event) {
       event.preventDefault();
-      
-      const guia = document.getElementById('guia').value;
-      const transportadora = document.getElementById('transportadora').value;
-      const contenido = document.getElementById('contenido').value;
+      const courier = document.getElementById('paqCourier').value;
+      const tracking = document.getElementById('paqTracking').value;
+      const valor = document.getElementById('paqValor').value;
+      const contenido = document.getElementById('paqContenido').value;
 
       const { error } = await _supabase.from('paquetes').insert([
         {
-          user_id: usuarioActual.id,
-          guia_transportadora: guia,
-          transportadora: transportadora,
+          user_id: currentUser.id,
+          courier: courier,
+          tracking: tracking,
+          valor: parseFloat(valor),
           contenido: contenido,
-          estado: 'Pre-alertado'
+          estatus: 'Prealertado'
         }
       ]);
 
       if (error) {
-        mostrarModal("Error", "No se pudo registrar la pre-alerta: " + error.message);
+        mostrarModal("Error", "No se pudo registrar la prealerta: " + error.message);
       } else {
-        mostrarModal("¡Éxito!", "Tu pre-alerta ha sido registrada correctamente.", () => {
-          document.getElementById('formPrealerta').reset();
+        mostrarModal("¡Éxito!", "Tu paquete ha sido prealertado correctamente.", () => {
+          document.getElementById('paqCourier').value = '';
+          document.getElementById('paqTracking').value = '';
+          document.getElementById('paqValor').value = '';
+          document.getElementById('paqContenido').value = '';
+          cambiarVista('misPaquetes', document.querySelectorAll('.nav-item')[2]);
           cargarMisPaquetes();
         });
       }
     }
 
-    // CERRAR SESIÓN
-    document.getElementById('btnLogout').addEventListener('click', async () => {
-      await _supabase.auth.signOut();
-      window.location.href = 'index.html';
-    });
+    async function cargarMisPaquetes() {
+      const container = document.getElementById('listaPaquetesContainer');
+      const { data, error } = await _supabase.from('paquetes').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
 
-    inicializarPanel();
+      if (error) {
+        container.innerHTML = "Error al cargar los paquetes.";
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = "<p>Aún no tienes paquetes registrados ni prealertados.</p>";
+        return;
+      }
+
+      let html = `<table style="width:100%; border-collapse:collapse; text-align:left;">
+        <thead>
+          <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.85rem;">
+            <th style="padding:10px;">Courier</th>
+            <th style="padding:10px;">Tracking</th>
+            <th style="padding:10px;">Contenido</th>
+            <th style="padding:10px;">Valor</th>
+            <th style="padding:10px;">Estatus</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      data.forEach(p => {
+        html += `<tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:12px 10px; font-weight:600;">${p.courier}</td>
+          <td style="padding:12px 10px; font-family:monospace;">${p.tracking}</td>
+          <td style="padding:12px 10px;">${p.contenido}</td>
+          <td style="padding:12px 10px;">$${p.valor}</td>
+          <td style="padding:12px 10px;"><span style="background:#eff6ff; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">${p.estatus}</span></td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    async function cerrarSesion() {
+      await _supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    function mostrarModal(titulo, texto, callback = null) {
+      document.getElementById('modalTitle').innerText = titulo;
+      document.getElementById('modalText').innerText = texto;
+      document.getElementById('customModal').classList.add('active');
+      window.modalCallback = callback;
+    }
+
+    function cerrarModal() {
+      document.getElementById('customModal').classList.remove('active');
+      if (window.modalCallback) {
+        window.modalCallback();
+        window.modalCallback = null;
+      }
+    }
+
+    window.onload = inicializarPanel;
   </script>
 </body>
 </html>
