@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Casillero | Ruta 57 Box</title>
+  <title>Mi Casillero | Ruta 57 Box</title>
   <style>
     :root {
       --primary: #0052cc;
@@ -16,173 +16,120 @@
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
     .container { max-width: 900px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .header-actions { display: flex; gap: 10px; }
     .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
-    
-    /* Navegación por pestañas */
-    .nav-tabs { display: flex; gap: 10px; border-bottom: 2px solid #dfe1e6; margin-bottom: 20px; overflow-x: auto; }
-    .nav-btn { padding: 10px 15px; border: none; background: none; font-weight: bold; color: #6b778c; cursor: pointer; border-bottom: 3px solid transparent; }
-    .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Formularios y tablas */
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
-    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary { background: #6b778c; }
     .btn-danger { background: var(--accent); }
-    .btn-admin { background: #36b37e; color: white; }
-    .btn-admin:hover { background: #00875a; }
-
+    .btn-success { background: var(--success); }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
     th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
     th { background: #fafbfc; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; background: #6b778c; }
-    .badge-success { background: var(--success); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group.full { grid-column: span 2; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.85rem; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .hidden { display: none; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; }
+    .badge-pre { background: #ffab00; }
+    .badge-bodega { background: #0052cc; }
+    .badge-transito { background: #00b8d9; }
+    .badge-entregado { background: var(--success); }
+
+    /* ESTILOS PARA MODAL PROFESIONAL */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(9, 30, 66, 0.54); display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: #fff; width: 100%; max-width: 380px; padding: 24px;
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(9, 30, 66, 0.25);
+      text-align: center; transform: translateY(-10px); transition: transform 0.2s ease;
+    }
+    .modal-overlay.active .modal-box { transform: translateY(0); }
+    .modal-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; color: var(--text); }
+    .modal-text { font-size: 0.95rem; color: #5e6c84; margin-bottom: 20px; line-height: 1.4; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <div class="container">
+  <!-- MODAL / POPUP PERSONALIZADO -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+      <div class="modal-title" id="modalTitle">Aviso</div>
+      <div class="modal-text" id="modalText">Mensaje del sistema.</div>
+      <div class="modal-actions" id="modalActions">
+        <button class="btn" style="margin-top:0;" onclick="cerrarModal()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE CARGA INICIAL -->
+  <div id="loadingState" style="text-align: center; margin-top: 50px;">
+    <h2>Cargando tu casillero...</h2>
+  </div>
+
+  <!-- CONTENIDO DEL CASILLERO -->
+  <div class="container hidden" id="panelContent">
     <div class="header">
-      <h2>Ruta 57 Box</h2>
-      <div class="header-actions" id="headerActions">
-        <!-- El botón Panel Admin se insertará aquí dinámicamente si el rol es 'admin' -->
+      <div>
+        <h2>📦 Mi Casillero: <span id="lblCasillero" style="color: var(--primary);">---</span></h2>
+        <p style="margin: 0; color: #5e6c84;" id="lblNombre">Cargando perfil...</p>
+      </div>
+      <div class="header-actions">
+        <a href="admin.html" class="btn btn-secondary hidden" id="btnAdminLink">Panel Admin</a>
         <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
       </div>
     </div>
 
-    <!-- Pestañas -->
-    <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchTab(event, 'resumen')">Casillero</button>
-      <button class="nav-btn" onclick="switchTab(event, 'prealertas')">Pre-alertar</button>
-      <button class="nav-btn" onclick="switchTab(event, 'paquetes')">Mis Envíos</button>
-      <button class="nav-btn" onclick="switchTab(event, 'cotizador')">Cotizador</button>
-      <button class="nav-btn" onclick="switchTab(event, 'direcciones')">Direcciones</button>
-      <button class="nav-btn" onclick="switchTab(event, 'pagos')">Pagos</button>
-    </div>
-
-    <!-- 1. CASILLERO Y DIRECCIÓN BODEGA -->
-    <div id="resumen" class="tab-content active">
-      <div class="card">
-        <h3>Bienvenido, <span id="userName">...</span></h3>
-        <p>Tu Código de Casillero: <strong id="userCode" style="color: var(--primary); font-size: 1.2rem;">...</strong></p>
-        <hr>
-        <h4>Dirección de Envío en Cúcuta (Colombia):</h4>
-        <p>
-          <strong>Nombre:</strong> <span id="envioName">...</span> (<span id="envioCode">...</span>)<br>
-          <strong>Dirección:</strong> Carrera 15 # 45-20 (Bodega Ruta 57 Box)<br>
-          <strong>Ciudad:</strong> Cúcuta, Norte de Santander<br>
-          <strong>Teléfono:</strong> +57 300 123 4567
-        </p>
-      </div>
-    </div>
-
-    <!-- 2. PRE-ALERTAR COMPRA -->
-    <div id="prealertas" class="tab-content">
-      <div class="card">
-        <h3>Pre-alertar Paquete en Camino</h3>
-        <form id="formPrealerta">
+    <!-- FORMULARIO DE PRE-ALERTA -->
+    <div class="card">
+      <h3>Pre-alertar Nuevo Paquete</h3>
+      <form id="formPrealerta" onsubmit="prealertarPaquete(event)">
+        <div class="form-grid">
           <div class="form-group">
-            <label>N° Guía de la Transportadora (Coordinadora, Servientrega, etc.)</label>
-            <input type="text" id="paqGuia" required placeholder="Ej. 123456789">
+            <label>Guía de la Transportadora</label>
+            <input type="text" id="guia" required placeholder="Ej: 1Z99999999999999">
           </div>
           <div class="form-group">
-            <label>Tienda / Origen</label>
-            <input type="text" id="paqTienda" required placeholder="Ej. MercadoLibre, Amazon">
+            <label>Transportadora (Courier en USA)</label>
+            <input type="text" id="transportadora" placeholder="Ej: Amazon, FedEx, UPS">
           </div>
-          <div class="form-group">
+          <div class="form-group full">
             <label>Contenido del Paquete</label>
-            <input type="text" id="paqContenido" required placeholder="Ej. Zapatos deportivos y Ropa">
+            <textarea id="contenido" rows="2" required placeholder="Ej: 2 Zapatos deportivos, 1 Camisa"></textarea>
           </div>
-          <div class="form-group">
-            <label>Valor Declarado (COP / USD)</label>
-            <input type="number" id="paqValor" required step="0.01">
-          </div>
-          <button type="submit" class="btn">Registrar Pre-alerta</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- 3. RASTREO Y PAQUETES -->
-    <div id="paquetes" class="tab-content">
-      <div class="card">
-        <h3>Estado de tus Paquetes</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Guía / Tienda</th>
-              <th>Contenido</th>
-              <th>Peso</th>
-              <th>Estado</th>
-              <th>Flete</th>
-            </tr>
-          </thead>
-          <tbody id="tablaPaquetes">
-            <tr><td colspan="5">Cargando paquetes...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 4. COTIZADOR DE TARIFAS -->
-    <div id="cotizador" class="tab-content">
-      <div class="card">
-        <h3>Calculadora de Envíos (Cúcuta &rightarrow; Venezuela)</h3>
-        <div class="form-group">
-          <label>Peso estimado (Kg)</label>
-          <input type="number" id="calcPeso" value="1" min="0.1" step="0.1">
         </div>
-        <div class="form-group">
-          <label>Tipo de Transporte</label>
-          <select id="calcTipo">
-            <option value="5">Aéreo ($5.00 / Kg)</option>
-            <option value="2.5">Marítimo ($2.50 / Kg)</option>
-          </select>
-        </div>
-        <button class="btn" onclick="calcularTarifa()">Calcular Costo</button>
-        <h4 id="resCotizacion" style="margin-top: 15px; color: var(--primary);"></h4>
-      </div>
+        <button type="submit" class="btn btn-success">Registrar Pre-alerta</button>
+      </form>
     </div>
 
-    <!-- 5. DIRECCIONES DE ENTREGA -->
-    <div id="direcciones" class="tab-content">
-      <div class="card">
-        <h3>Agregar Dirección de Entrega en Venezuela</h3>
-        <form id="formDireccion">
-          <div class="form-group"><label>Alias (Ej. Casa / Oficina)</label><input type="text" id="dirAlias" required></div>
-          <div class="form-group"><label>Nombre del Destinatario</label><input type="text" id="dirNombre" required></div>
-          <div class="form-group"><label>Cédula / RIF</label><input type="text" id="dirCedula" required></div>
-          <div class="form-group"><label>Ciudad y Estado</label><input type="text" id="dirCiudad" required placeholder="Ej. Valencia, Carabobo"></div>
-          <div class="form-group"><label>Dirección Exacta o Agencia (MRW/Tealca/Zoom)</label><textarea id="dirExacta" required></textarea></div>
-          <button type="submit" class="btn">Guardar Dirección</button>
-        </form>
-      </div>
+    <!-- LISTA DE PAQUETES DEL CLIENTE -->
+    <div class="card">
+      <h3>Mis Paquetes y Pre-alertas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Guía</th>
+            <th>Transportadora</th>
+            <th>Contenido</th>
+            <th>Peso</th>
+            <th>Flete</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaMisPaquetes">
+          <tr><td colspan="6" style="text-align:center;">Cargando tus paquetes...</td></tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- 6. REPORTAR PAGOS -->
-    <div id="pagos" class="tab-content">
-      <div class="card">
-        <h3>Reportar Pago de Flete</h3>
-        <form id="formPago">
-          <div class="form-group">
-            <label>Método de Pago</label>
-            <select id="pagoMetodo">
-              <option>Pago Móvil</option>
-              <option>Zelle</option>
-              <option>Transferencia Bancaria</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Número de Referencia</label><input type="text" id="pagoRef" required></div>
-          <div class="form-group"><label>Monto Transferido ($ / Bs)</label><input type="number" id="pagoMonto" required step="0.01"></div>
-          <button type="submit" class="btn">Enviar Comprobante</button>
-        </form>
-      </div>
-    </div>
-
   </div>
 
   <script>
@@ -191,128 +138,145 @@
     
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    let currentUser = null
 
-    function switchTab(evt, tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'))
-      document.getElementById(tabId).classList.add('active')
-      evt.currentTarget.classList.add('active')
-    }
+    let usuarioActual = null;
 
-    async function initApp() {
-      const { data: { session } } = await _supabase.auth.getSession()
-      if (!session) { window.location.href = 'index.html'; return; }
+    // FUNCIONES DE MODAL PROFESIONAL
+    function mostrarModal(titulo, texto, callback = null) {
+      document.getElementById('modalTitle').innerText = titulo;
+      document.getElementById('modalText').innerText = texto;
+      const actionsDiv = document.getElementById('modalActions');
       
-      currentUser = session.user
-      cargarPerfil()
-      cargarPaquetes()
+      actionsDiv.innerHTML = `<button class="btn" style="margin-top:0;" id="btnModalOk">Aceptar</button>`;
+      
+      document.getElementById('customModal').classList.add('active');
+      
+      document.getElementById('btnModalOk').onclick = () => {
+        cerrarModal();
+        if (callback) callback();
+      };
     }
 
-    async function cargarPerfil() {
-      let { data: perfil } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle()
-      if (perfil) {
-        document.getElementById('userName').innerText = perfil.nombre_completo
-        document.getElementById('userCode').innerText = perfil.codigo_casillero
-        document.getElementById('envioName').innerText = perfil.nombre_completo
-        document.getElementById('envioCode').innerText = perfil.codigo_casillero
+    function cerrarModal() {
+      document.getElementById('customModal').classList.remove('active');
+    }
 
-        // Mostrar botón de Admin si el perfil posee el rol 'admin'
-        if (perfil.rol === 'admin' && !document.getElementById('btnIrAdmin')) {
-          const headerActions = document.getElementById('headerActions')
-          const adminBtn = document.createElement('a')
-          adminBtn.id = 'btnIrAdmin'
-          adminBtn.href = 'admin.html'
-          adminBtn.className = 'btn btn-admin'
-          adminBtn.innerText = '⚙️ Panel Admin'
-          headerActions.insertBefore(adminBtn, document.getElementById('btnLogout'))
+    // VERIFICAR SESIÓN Y CARGAR DATOS
+    async function inicializarPanel() {
+      try {
+        const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
+        if (sessionError || !session) {
+          window.location.href = "index.html";
+          return;
         }
+
+        usuarioActual = session.user;
+
+        // Obtener perfil del usuario
+        const { data: perfil, error: perfilError } = await _supabase
+          .from('perfiles')
+          .select('*')
+          .eq('id', usuarioActual.id)
+          .maybeSingle();
+
+        if (perfilError || !perfil) {
+          mostrarModal("Error", "No se encontró el perfil de usuario.");
+          return;
+        }
+
+        document.getElementById('lblCasillero').innerText = perfil.codigo_casillero || 'S/N';
+        document.getElementById('lblNombre').innerText = `${perfil.nombre_completo} — Cédula: ${perfil.cedula || 'N/A'}`;
+
+        // Si es admin, mostrar enlace al panel de administración
+        if (perfil.rol === 'admin') {
+          document.getElementById('btnAdminLink').classList.remove('hidden');
+        }
+
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('panelContent').classList.remove('hidden');
+
+        cargarMisPaquetes();
+      } catch (err) {
+        console.error("Error al inicializar:", err);
+        window.location.href = "index.html";
       }
     }
 
-    // Registrar Pre-alerta
-    document.getElementById('formPrealerta').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      await _supabase.from('paquetes').insert([{
-        user_id: currentUser.id,
-        guia_transportadora: document.getElementById('paqGuia').value,
-        tienda: document.getElementById('paqTienda').value,
-        contenido: document.getElementById('paqContenido').value,
-        valor_declarado: document.getElementById('paqValor').value
-      }])
-      alert('¡Pre-alerta registrada!')
-      document.getElementById('formPrealerta').reset()
-      cargarPaquetes()
-    })
-
-    // Consultar Paquetes
-    async function cargarPaquetes() {
-      const { data: paquetes } = await _supabase.from('paquetes').select('*').eq('user_id', currentUser.id)
-      const tbody = document.getElementById('tablaPaquetes')
-      tbody.innerHTML = ''
+    // CARGAR PAQUETES DEL CLIENTE
+    async function cargarMisPaquetes() {
+      const tbody = document.getElementById('tablaMisPaquetes');
       
-      if (!paquetes || paquetes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No tienes paquetes registrados.</td></tr>'
-        return
+      const { data: paquetes, error } = await _supabase
+        .from('paquetes')
+        .select('*')
+        .eq('user_id', usuarioActual.id)
+        .order('id', { ascending: false });
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar: ${error.message}</td></tr>`;
+        return;
       }
 
+      if (!paquetes || paquetes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#666;">No tienes paquetes ni pre-alertas registradas.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
       paquetes.forEach(p => {
-        const peso = p.peso_kg ? `${p.peso_kg} kg` : 'Por pesar'
-        const flete = p.monto_flete ? `$${p.monto_flete}` : 'Por calcular'
+        let badgeClass = 'badge-pre';
+        if (p.estado === 'Recibido en Bodega') badgeClass = 'badge-bodega';
+        else if (p.estado === 'En Tránsito') badgeClass = 'badge-transito';
+        else if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
+
         tbody.innerHTML += `
           <tr>
-            <td><strong>${p.guia_transportadora}</strong><br><small>${p.tienda}</small></td>
-            <td>${p.contenido}</td>
-            <td>${peso}</td>
-            <td><span class="badge badge-success">${p.estado}</span></td>
-            <td>${flete}</td>
+            <td><strong>${p.guia_transportadora || 'Sin guía'}</strong></td>
+            <td>${p.transportadora || 'N/A'}</td>
+            <td>${p.contenido || 'Sin descripción'}</td>
+            <td>${p.peso_kg ? p.peso_kg + ' Kg' : 'Por calcular'}</td>
+            <td>${p.monto_flete ? '$' + p.monto_flete : 'Por calcular'}</td>
+            <td><span class="badge ${badgeClass}">${p.estado || 'Pre-alertado'}</span></td>
           </tr>
-        `
-      })
+        `;
+      });
     }
 
-    // Cotizador
-    function calcularTarifa() {
-      const peso = parseFloat(document.getElementById('calcPeso').value) || 0
-      const tarifa = parseFloat(document.getElementById('calcTipo').value)
-      const total = peso * tarifa
-      document.getElementById('resCotizacion').innerText = `Costo Estimado: $${total.toFixed(2)} USD`
+    // PRE-ALERTAR PAQUETE
+    async function prealertarPaquete(event) {
+      event.preventDefault();
+      
+      const guia = document.getElementById('guia').value;
+      const transportadora = document.getElementById('transportadora').value;
+      const contenido = document.getElementById('contenido').value;
+
+      const { error } = await _supabase.from('paquetes').insert([
+        {
+          user_id: usuarioActual.id,
+          guia_transportadora: guia,
+          transportadora: transportadora,
+          contenido: contenido,
+          estado: 'Pre-alertado'
+        }
+      ]);
+
+      if (error) {
+        mostrarModal("Error", "No se pudo registrar la pre-alerta: " + error.message);
+      } else {
+        mostrarModal("¡Éxito!", "Tu pre-alerta ha sido registrada correctamente.", () => {
+          document.getElementById('formPrealerta').reset();
+          cargarMisPaquetes();
+        });
+      }
     }
 
-    // Guardar Dirección
-    document.getElementById('formDireccion').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      await _supabase.from('direcciones').insert([{
-        user_id: currentUser.id,
-        alias: document.getElementById('dirAlias').value,
-        destinatario: document.getElementById('dirNombre').value,
-        cedula_destinatario: document.getElementById('dirCedula').value,
-        ciudad: document.getElementById('dirCiudad').value,
-        direccion_exacta: document.getElementById('dirExacta').value
-      }])
-      alert('Dirección guardada correctamente')
-      document.getElementById('formDireccion').reset()
-    })
-
-    // Reportar Pago
-    document.getElementById('formPago').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      await _supabase.from('pagos').insert([{
-        user_id: currentUser.id,
-        metodo_pago: document.getElementById('pagoMetodo').value,
-        referencia: document.getElementById('pagoRef').value,
-        monto: document.getElementById('pagoMonto').value
-      }])
-      alert('Comprobante enviado a verificación')
-      document.getElementById('formPago').reset()
-    })
-
+    // CERRAR SESIÓN
     document.getElementById('btnLogout').addEventListener('click', async () => {
-      await _supabase.auth.signOut()
-      window.location.href = 'index.html'
-    })
+      await _supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
 
-    initApp()
+    inicializarPanel();
   </script>
 </body>
 </html>
