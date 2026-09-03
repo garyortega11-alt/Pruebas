@@ -190,17 +190,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Vista de Administrador (Oculta por defecto para clientes) -->
-    <div id="adminPanel" class="view-section">
-      <div class="card">
-        <h3>Panel de Administración General</h3>
-        <p style="color: var(--muted); margin-bottom: 20px;">Gestión de todos los paquetes de usuarios y actualización de estatus globales de carga.</p>
-        <div id="adminPaquetesContainer" style="margin-top: 15px;">
-          Cargando control de administración...
-        </div>
-      </div>
-    </div>
   </main>
 
   <script>
@@ -234,16 +223,16 @@
         document.getElementById('perfilCedula').value = data.cedula || 'No registrada';
         document.getElementById('perfilEmail').value = currentUser.email;
 
-        // Si es admin, inyectar la opción de panel admin en el menú lateral
+        // Si es admin, añadimos la opción en el menú lateral que redirige a admin.html
         if (data.rol === 'admin') {
           const menu = document.getElementById('navMenuContainer');
           const adminNav = document.createElement('div');
           adminNav.className = 'nav-item admin-link';
           adminNav.innerHTML = '👑 Panel Admin';
-          adminNav.onclick = () => cambiarVista('adminPanel', adminNav);
+          adminNav.onclick = () => {
+            window.location.href = 'admin.html';
+          };
           menu.appendChild(adminNav);
-          
-          cargarPanelAdmin();
         }
       }
       cargarMisPaquetes();
@@ -256,13 +245,8 @@
       document.getElementById(vistaId).classList.add('active');
       if (elementoNav) elementoNav.classList.add('active');
 
-      if(vistaId === 'adminPanel') {
-        document.getElementById('welcomeTitle').innerText = 'Panel de Administración';
-        document.getElementById('welcomeSubtitle').innerText = 'Control total de prealertas y estatus de casilleros.';
-      } else {
-        document.getElementById('welcomeTitle').innerText = `Hola, ${currentPerfil ? currentPerfil.nombre_completo : 'Usuario'}`;
-        document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas internacionales.';
-      }
+      document.getElementById('welcomeTitle').innerText = `Hola, ${currentPerfil ? currentPerfil.nombre_completo : 'Usuario'}`;
+      document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas internacionales.';
     }
 
     async function registrarPrealerta(event) {
@@ -335,71 +319,6 @@
 
       html += `</tbody></table>`;
       container.innerHTML = html;
-    }
-
-    async function cargarPanelAdmin() {
-      const container = document.getElementById('adminPaquetesContainer');
-      const { data, error } = await _supabase.from('paquetes').select('*, perfiles(nombre_completo, codigo_casillero)').order('created_at', { ascending: false });
-
-      if (error) {
-        container.innerHTML = "Error al cargar las cargas generales de administración.";
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p>No hay paquetes en el sistema registrados por usuarios.</p>";
-        return;
-      }
-
-      let html = `<table style="width:100%; border-collapse:collapse; text-align:left; font-size: 0.9rem;">
-        <thead>
-          <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.8rem;">
-            <th style="padding:8px;">Cliente / Casillero</th>
-            <th style="padding:8px;">Courier / Tracking</th>
-            <th style="padding:8px;">Contenido</th>
-            <th style="padding:8px;">Estatus Actual</th>
-            <th style="padding:8px;">Acción</th>
-          </tr>
-        </thead>
-        <tbody>`;
-
-      data.forEach(p => {
-        const clienteNombre = p.perfiles ? p.perfiles.nombre_completo : 'Desconocido';
-        const clienteCasillero = p.perfiles ? p.perfiles.codigo_casillero : 'VEN-XXXX';
-        
-        html += `<tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:10px;"><b>${clienteNombre}</b><br><span style="color:var(--primary); font-size:0.8rem;">${clienteCasillero}</span></td>
-          <td style="padding:10px;">${p.courier}<br><span style="font-family:monospace; font-size:0.8rem;">${p.tracking}</span></td>
-          <td style="padding:10px;">${p.contenido}</td>
-          <td style="padding:10px;">
-            <select id="estatus_${p.id}" style="padding:6px; font-size:0.85rem;">
-              <option value="Prealertado" ${p.estatus === 'Prealertado' ? 'selected' : ''}>Prealertado</option>
-              <option value="Recibido en Miami" ${p.estatus === 'Recibido en Miami' ? 'selected' : ''}>Recibido en Miami</option>
-              <option value="En Tránsito a Venezuela" ${p.estatus === 'En Tránsito a Venezuela' ? 'selected' : ''}>En Tránsito a Venezuela</option>
-              <option value="Disponible en Oficina" ${p.estatus === 'Disponible en Oficina' ? 'selected' : ''}>Disponible en Oficina</option>
-              <option value="Entregado" ${p.estatus === 'Entregado' ? 'selected' : ''}>Entregado</option>
-            </select>
-          </td>
-          <td style="padding:10px;">
-            <button class="btn" style="padding:6px 12px; font-size:0.8rem;" onclick="actualizarEstatusPaquete('${p.id}')">Guardar</button>
-          </td>
-        </tr>`;
-      });
-
-      html += `</tbody></table>`;
-      container.innerHTML = html;
-    }
-
-    async function actualizarEstatusPaquete(idPaquete) {
-      const nuevoEstatus = document.getElementById(`estatus_${idPaquete}`).value;
-      const { error } = await _supabase.from('paquetes').update({ estatus: nuevoEstatus }).eq('id', idPaquete);
-
-      if (error) {
-        mostrarModal("Error", "No se pudo actualizar: " + error.message);
-      } else {
-        mostrarModal("Actualizado", "El estatus del paquete ha sido modificado exitosamente.");
-        cargarPanelAdmin();
-      }
     }
 
     async function cerrarSesion() {
