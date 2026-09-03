@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Casillero Express | Colombia a Venezuela</title>
+  <title>Ruta 57 Box | Casillero Colombia a Venezuela</title>
   <style>
     :root {
       --primary: #0052cc;
@@ -90,12 +90,13 @@
     <div id="mensaje" class="alert"></div>
   </div>
 
+  <!-- Cliente JS de Supabase vía CDN -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // *** REMPLAZA CON TUS CREDENCIALES DE SUPABASE ***
-    const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co'
-    const SUPABASE_ANON_KEY = 'TU-ANON-KEY'
+    // *** CREDENCIALES CONFIGURADAS DE RUTA57BOX ***
+    const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
+    const SUPABASE_ANON_KEY = 'sb_publishable_rF2EYSwp_VavWqtwPgJ6wA_KSnjA...' // Asegúrate de pegar aquí la clave Publishable completa copiada de tu panel
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     const form = document.getElementById('registroForm')
@@ -120,14 +121,14 @@
       const codigoCasillero = generarCodigoCasillero()
 
       try {
-        // 1. Crear usuario en Auth
+        // 1. Crear usuario en Auth de Supabase
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password
         })
         if (authError) throw authError
 
-        // 2. Guardar datos en la tabla perfiles
+        // 2. Guardar datos adicionales en la tabla 'perfiles'
         const { error: perfilError } = await supabase
           .from('perfiles')
           .insert([{
@@ -140,7 +141,7 @@
 
         // Respuesta exitosa
         mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerHTML = `¡Cuenta creada! Tu casillero asignado es: <strong>${codigoCasillero}</strong>`
+        mensajeDiv.innerHTML = `¡Cuenta creada con éxito! Tu código de casillero asignado es: <strong>${codigoCasillero}</strong>`
         mensajeDiv.style.display = 'block'
         form.reset()
 
