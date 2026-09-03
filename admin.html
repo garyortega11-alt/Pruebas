@@ -97,34 +97,53 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // VALIDACIÓN DE SEGURIDAD ESTRICTA
+    // VALIDACIÓN DE SEGURIDAD ESTRICTA (Blindada contra bloqueos)
     async function validarAccesoAdmin() {
-      const { data: { session } } = await _supabase.auth.getSession();
+      try {
+        console.log("Iniciando validación...");
+        const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
 
-      if (!session) {
-        alert("Acceso denegado: Inicia sesión primero.");
-        window.location.href = "index.html";
-        return;
-      }
+        if (sessionError) throw sessionError;
 
-      const { data: perfil, error } = await _supabase
-        .from('perfiles')
-        .select('rol')
-        .eq('id', session.user.id)
-        .maybeSingle();
+        if (!session) {
+          alert("Acceso denegado: Inicia sesión primero.");
+          window.location.href = "index.html";
+          return;
+        }
 
-      if (error || !perfil || perfil.rol !== 'admin') {
-        alert("Acceso Restringido: Tu cuenta no posee permisos de Administrador.");
+        console.log("Sesión encontrada, consultando perfil para el ID:", session.user.id);
+
+        const { data: perfil, error: perfilError } = await _supabase
+          .from('perfiles')
+          .select('rol')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (perfilError) {
+          console.error("Error en la consulta de perfiles:", perfilError);
+          alert("Error de base de datos al verificar rol: " + perfilError.message);
+          window.location.href = "panel.html";
+          return;
+        }
+
+        if (!perfil || perfil.rol !== 'admin') {
+          alert("Acceso Restringido: Tu cuenta no posee permisos de Administrador.");
+          window.location.href = "panel.html";
+          return;
+        }
+
+        // Si todo es correcto, muestra el contenido
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+
+        cargarUsuarios();
+        cargarPaquetesAdmin();
+
+      } catch (err) {
+        console.error("Excepción crítica en validarAccesoAdmin:", err);
+        alert("Ocurrió un error inesperado al verificar credenciales: " + err.message);
         window.location.href = "panel.html";
-        return;
       }
-
-      // Si todo es correcto, muestra el contenido
-      document.getElementById('loadingState').classList.add('hidden');
-      document.getElementById('adminContent').classList.remove('hidden');
-
-      cargarUsuarios();
-      cargarPaquetesAdmin();
     }
 
     async function cargarUsuarios() {
