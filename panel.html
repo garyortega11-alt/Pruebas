@@ -144,7 +144,7 @@
         <form onsubmit="registrarPrealerta(event)">
           <div class="form-group">
             <label>Empresa de Envío / Courier (Ej: Amazon Logistics, UPS, FedEx)</label>
-            <input type="text" id="paqCourier" required placeholder="Ej: USPS">
+            <input type="text" id="paqEmpresa" required placeholder="Ej: USPS">
           </div>
           <div class="form-group">
             <label>Número de Tracking / Seguimiento</label>
@@ -251,7 +251,7 @@
 
     async function registrarPrealerta(event) {
       event.preventDefault();
-      const courier = document.getElementById('paqCourier').value;
+      const empresa = document.getElementById('paqEmpresa').value;
       const tracking = document.getElementById('paqTracking').value;
       const valor = document.getElementById('paqValor').value;
       const contenido = document.getElementById('paqContenido').value;
@@ -259,10 +259,10 @@
       const { error } = await _supabase.from('paquetes').insert([
         {
           user_id: currentUser.id,
-          courier: courier,
+          empresa_envio: empresa,
           tracking: tracking,
           valor: parseFloat(valor),
-          contenido: contenido,
+          descripcion: contenido,
           estatus: 'Prealertado'
         }
       ]);
@@ -271,7 +271,7 @@
         mostrarModal("Error", "No se pudo registrar la prealerta: " + error.message);
       } else {
         mostrarModal("¡Éxito!", "Tu paquete ha sido prealertado correctamente.", () => {
-          document.getElementById('paqCourier').value = '';
+          document.getElementById('paqEmpresa').value = '';
           document.getElementById('paqTracking').value = '';
           document.getElementById('paqValor').value = '';
           document.getElementById('paqContenido').value = '';
@@ -298,7 +298,7 @@
       let html = `<table style="width:100%; border-collapse:collapse; text-align:left;">
         <thead>
           <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.85rem;">
-            <th style="padding:10px;">Courier</th>
+            <th style="padding:10px;">Empresa / Courier</th>
             <th style="padding:10px;">Tracking</th>
             <th style="padding:10px;">Contenido</th>
             <th style="padding:10px;">Valor</th>
@@ -309,9 +309,9 @@
 
       data.forEach(p => {
         html += `<tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:12px 10px; font-weight:600;">${p.courier}</td>
+          <td style="padding:12px 10px; font-weight:600;">${p.empresa_envio || 'N/D'}</td>
           <td style="padding:12px 10px; font-family:monospace;">${p.tracking}</td>
-          <td style="padding:12px 10px;">${p.contenido}</td>
+          <td style="padding:12px 10px;">${p.descripcion}</td>
           <td style="padding:12px 10px;">$${p.valor}</td>
           <td style="padding:12px 10px;"><span style="background:#eff6ff; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">${p.estatus}</span></td>
         </tr>`;
