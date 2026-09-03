@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Cliente | Casilleros Ruta 57 Box</title>
+  <title>Panel de Control | Casilleros Ruta 57 Box</title>
   <style>
     :root {
       --primary: #004581;
@@ -15,13 +15,14 @@
       --border: #cbd5e1;
       --accent: #e11d48;
       --success: #16a34a;
+      --admin-badge: #d97706;
     }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
     
     /* Sidebar */
     aside { width: 260px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; }
-    .sidebar-top { padding: 20px; }
+    .sidebar-top { padding: 20px; overflow-y: auto; }
     .logo-area { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
     .logo-icon { background: var(--primary); color: #fff; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
     .logo-text { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
@@ -30,6 +31,8 @@
     .nav-item { padding: 12px 16px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
     .nav-item:hover { background: #f1f5f9; color: var(--primary); }
     .nav-item.active { background: #eff6ff; color: var(--primary); }
+    .nav-item.admin-link { color: var(--admin-badge); background: #fffbeb; }
+    .nav-item.admin-link:hover { background: #fef3c7; }
 
     .sidebar-bottom { padding: 20px; border-top: 1px solid #e2e8f0; }
     .user-info { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; word-break: break-all; }
@@ -84,7 +87,8 @@
         <div class="logo-icon">57</div>
         <div class="logo-text">Ruta 57 Box</div>
       </div>
-      <div class="nav-menu">
+      <div class="nav-menu" id="navMenuContainer">
+        <!-- Opciones estándar de cliente -->
         <div class="nav-item active" onclick="cambiarVista('dashboard', this)">📦 Mi Casillero</div>
         <div class="nav-item" onclick="cambiarVista('prealertar', this)">➕ Prealertar Paquete</div>
         <div class="nav-item" onclick="cambiarVista('misPaquetes', this)">📋 Mis Paquetes</div>
@@ -100,10 +104,10 @@
   <main>
     <div class="header-welcome">
       <h1 id="welcomeTitle">Bienvenido</h1>
-      <p>Administra las operaciones de tus cargas internacionales.</p>
+      <p id="welcomeSubtitle">Administra las operaciones de tus cargas internacionales.</p>
     </div>
 
-    <!-- Vista 1: Dashboard / Mi Casillero -->
+    <!-- Vistas de Cliente -->
     <div id="dashboard" class="view-section active">
       <div class="card">
         <h3>Tu Dirección de Casillero en Miami</h3>
@@ -134,7 +138,6 @@
       </div>
     </div>
 
-    <!-- Vista 2: Prealertar Paquete -->
     <div id="prealertar" class="view-section">
       <div class="card" style="max-width: 600px;">
         <h3>Prealertar Nueva Compra</h3>
@@ -145,7 +148,7 @@
           </div>
           <div class="form-group">
             <label>Número de Tracking / Seguimiento</label>
-            <input type="text" id="paqTracking" required placeholder="Ej: 940011189956...cią">
+            <input type="text" id="paqTracking" required placeholder="Ej: 940011189956...">
           </div>
           <div class="form-group">
             <label>Valor Declarado ($ USD)</label>
@@ -160,7 +163,6 @@
       </div>
     </div>
 
-    <!-- Vista 3: Mis Paquetes -->
     <div id="misPaquetes" class="view-section">
       <div class="card">
         <h3>Historial de Paquetes y Prealertas</h3>
@@ -171,7 +173,6 @@
       </div>
     </div>
 
-    <!-- Vista 4: Mis Datos / Perfil -->
     <div id="perfil" class="view-section">
       <div class="card" style="max-width: 500px;">
         <h3>Datos Personales</h3>
@@ -186,6 +187,17 @@
         <div class="form-group">
           <label>Correo Electrónico</label>
           <input type="text" id="perfilEmail" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista de Administrador (Oculta por defecto para clientes) -->
+    <div id="adminPanel" class="view-section">
+      <div class="card">
+        <h3>Panel de Administración General</h3>
+        <p style="color: var(--muted); margin-bottom: 20px;">Gestión de todos los paquetes de usuarios y actualización de estatus globales de carga.</p>
+        <div id="adminPaquetesContainer" style="margin-top: 15px;">
+          Cargando control de administración...
         </div>
       </div>
     </div>
@@ -210,7 +222,7 @@
       currentUser = session.user;
       document.getElementById('userEmailDisplay').innerText = currentUser.email;
 
-      // Cargar perfil de la base de datos
+      // Cargar perfil y rol de la base de datos
       const { data, err } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle();
       if (data) {
         currentPerfil = data;
@@ -221,6 +233,18 @@
         document.getElementById('perfilNombre').value = data.nombre_completo;
         document.getElementById('perfilCedula').value = data.cedula || 'No registrada';
         document.getElementById('perfilEmail').value = currentUser.email;
+
+        // Si es admin, inyectar la opción de panel admin en el menú lateral
+        if (data.rol === 'admin') {
+          const menu = document.getElementById('navMenuContainer');
+          const adminNav = document.createElement('div');
+          adminNav.className = 'nav-item admin-link';
+          adminNav.innerHTML = '👑 Panel Admin';
+          adminNav.onclick = () => cambiarVista('adminPanel', adminNav);
+          menu.appendChild(adminNav);
+          
+          cargarPanelAdmin();
+        }
       }
       cargarMisPaquetes();
     }
@@ -231,6 +255,14 @@
 
       document.getElementById(vistaId).classList.add('active');
       if (elementoNav) elementoNav.classList.add('active');
+
+      if(vistaId === 'adminPanel') {
+        document.getElementById('welcomeTitle').innerText = 'Panel de Administración';
+        document.getElementById('welcomeSubtitle').innerText = 'Control total de prealertas y estatus de casilleros.';
+      } else {
+        document.getElementById('welcomeTitle').innerText = `Hola, ${currentPerfil ? currentPerfil.nombre_completo : 'Usuario'}`;
+        document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas internacionales.';
+      }
     }
 
     async function registrarPrealerta(event) {
@@ -303,6 +335,71 @@
 
       html += `</tbody></table>`;
       container.innerHTML = html;
+    }
+
+    async function cargarPanelAdmin() {
+      const container = document.getElementById('adminPaquetesContainer');
+      const { data, error } = await _supabase.from('paquetes').select('*, perfiles(nombre_completo, codigo_casillero)').order('created_at', { ascending: false });
+
+      if (error) {
+        container.innerHTML = "Error al cargar las cargas generales de administración.";
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = "<p>No hay paquetes en el sistema registrados por usuarios.</p>";
+        return;
+      }
+
+      let html = `<table style="width:100%; border-collapse:collapse; text-align:left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.8rem;">
+            <th style="padding:8px;">Cliente / Casillero</th>
+            <th style="padding:8px;">Courier / Tracking</th>
+            <th style="padding:8px;">Contenido</th>
+            <th style="padding:8px;">Estatus Actual</th>
+            <th style="padding:8px;">Acción</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      data.forEach(p => {
+        const clienteNombre = p.perfiles ? p.perfiles.nombre_completo : 'Desconocido';
+        const clienteCasillero = p.perfiles ? p.perfiles.codigo_casillero : 'VEN-XXXX';
+        
+        html += `<tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px;"><b>${clienteNombre}</b><br><span style="color:var(--primary); font-size:0.8rem;">${clienteCasillero}</span></td>
+          <td style="padding:10px;">${p.courier}<br><span style="font-family:monospace; font-size:0.8rem;">${p.tracking}</span></td>
+          <td style="padding:10px;">${p.contenido}</td>
+          <td style="padding:10px;">
+            <select id="estatus_${p.id}" style="padding:6px; font-size:0.85rem;">
+              <option value="Prealertado" ${p.estatus === 'Prealertado' ? 'selected' : ''}>Prealertado</option>
+              <option value="Recibido en Miami" ${p.estatus === 'Recibido en Miami' ? 'selected' : ''}>Recibido en Miami</option>
+              <option value="En Tránsito a Venezuela" ${p.estatus === 'En Tránsito a Venezuela' ? 'selected' : ''}>En Tránsito a Venezuela</option>
+              <option value="Disponible en Oficina" ${p.estatus === 'Disponible en Oficina' ? 'selected' : ''}>Disponible en Oficina</option>
+              <option value="Entregado" ${p.estatus === 'Entregado' ? 'selected' : ''}>Entregado</option>
+            </select>
+          </td>
+          <td style="padding:10px;">
+            <button class="btn" style="padding:6px 12px; font-size:0.8rem;" onclick="actualizarEstatusPaquete('${p.id}')">Guardar</button>
+          </td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    async function actualizarEstatusPaquete(idPaquete) {
+      const nuevoEstatus = document.getElementById(`estatus_${idPaquete}`).value;
+      const { error } = await _supabase.from('paquetes').update({ estatus: nuevoEstatus }).eq('id', idPaquete);
+
+      if (error) {
+        mostrarModal("Error", "No se pudo actualizar: " + error.message);
+      } else {
+        mostrarModal("Actualizado", "El estatus del paquete ha sido modificado exitosamente.");
+        cargarPanelAdmin();
+      }
     }
 
     async function cerrarSesion() {
