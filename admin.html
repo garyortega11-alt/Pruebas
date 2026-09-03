@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administración | Ruta 57 Box</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f5f7; padding: 20px; color: #172b4d; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
+    th { background: #fafbfc; }
+    .btn { background: #0052cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    input, select { padding: 4px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Panel de Administración - Ruta 57 Box</h2>
+
+    <!-- RECEPCIÓNY GESTIÓN DE PAQUETES -->
+    <div class="card">
+      <h3>Paquetes y Pre-alertas Recibidas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario / Casillero</th>
+            <th>Guía / Tienda</th>
+            <th>Contenido</th>
+            <th>Peso (Kg)</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaAdminPaquetes">
+          <tr><td colspan="6">Cargando datos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- REVISIÓN DE PAGOS -->
+    <div class="card">
+      <h3>Pagos Reportados</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Método</th>
+            <th>Referencia</th>
+            <th>Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaAdminPagos">
+          <tr><td colspan="5">Cargando pagos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
+    
+    const { createClient } = window.supabase
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    async function cargarDatosAdmin() {
+      // 1. Obtener todos los paquetes
+      const { data: paquetes, error } = await _supabase
+        .from('paquetes')
+        .select('*, perfiles(nombre_completo, codigo_casillero)')
+
+      const tbodyPaquetes = document.getElementById('tablaAdminPaquetes')
+      tbodyPaquetes.innerHTML = ''
+
+      if (paquetes) {
+        paquetes.forEach(p => {
+          const cliente = p.perfiles ? `${p.perfiles.nombre_completo} (${p.perfiles.codigo_casillero})` : 'Desconocido'
+          tbodyPaquetes.innerHTML += `
+            <tr>
+              <td>${cliente}</td>
+              <td><strong>${p.guia_transportadora}</strong><br><small>${p.tienda}</small></td>
+              <td>${p.contenido}</td>
+              <td><input type="number" id="peso_${p.id}" value="${p.peso_kg}" style="width: 60px;"> kg</td>
+              <td>
+                <select id="estado_${p.id}">
+                  <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
+                  <option value="En Bodega Cúcuta" ${p.estado === 'En Bodega Cúcuta' ? 'selected' : ''}>En Bodega Cúcuta</option>
+                  <option value="En Tránsito" ${p.estado === 'En Tránsito' ? 'selected' : ''}>En Tránsito</option>
+                  <option value="Entregado" ${p.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                </select>
+              </td>
+              <td>
+                <button class="btn" onclick="actualizarPaquete('${p.id}')">Guardar</button>
+              </td>
+            </tr>
+          `
+        })
+      }
+
+      // 2. Obtener pagos
+      const { data: pagos } = await _supabase
+        .from('pagos')
+        .select('*, perfiles(nombre_completo)')
+
+      const tbodyPagos = document.getElementById('tablaAdminPagos')
+      tbodyPagos.innerHTML = ''
+
+      if (pagos) {
+        pagos.forEach(pg => {
+          const cliente = pg.perfiles ? pg.perfiles.nombre_completo : 'Desconocido'
+          tbodyPagos.innerHTML += `
+            <tr>
+              <td>${cliente}</td>
+              <td>${pg.metodo_pago}</td>
+              <td><strong>${pg.referencia}</strong></td>
+              <td>$${pg.monto}</td>
+              <td>${pg.estado}</td>
+            </tr>
+          `
+        })
+      }
+    }
+
+    async function actualizarPaquete(id) {
+      const nuevoPeso = document.getElementById(`peso_${id}`).value
+      const nuevoEstado = document.getElementById(`estado_${id}`).value
+
+      const { error } = await _supabase
+        .from('paquetes')
+        .update({ peso_kg: nuevoPeso, estado: nuevoEstado })
+        .eq('id', id)
+
+      if (error) {
+        alert('Error al actualizar: ' + error.message)
+      } else {
+        alert('Paquete actualizado correctamente')
+        cargarDatosAdmin()
+      }
+    }
+
+    cargarDatosAdmin()
+  </script>
+</body>
+</html>
