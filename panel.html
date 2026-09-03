@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Casillero | Ruta 57 Box</title>
+  <style>
+    :root {
+      --primary: #0052cc;
+      --background: #f4f5f7;
+      --card: #ffffff;
+      --text: #172b4d;
+      --accent: #25d366;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+    }
+    .card {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid var(--background);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .code-box {
+      background-color: #e3fcef;
+      border: 2px dashed #006644;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      margin: 15px 0;
+    }
+    .code-box h3 { margin: 0; color: #006644; font-size: 1.8rem; }
+    .address-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid var(--primary);
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .address-box strong { color: var(--primary); }
+    ul { padding-left: 20px; line-height: 1.6; }
+    .btn-logout {
+      background: #de350b;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h2 style="margin:0; color: var(--primary);">Ruta 57 Box</h2>
+        <p style="margin: 5px 0 0 0; color: #6b778c;">Tu Casillero Colombia - Venezuela</p>
+      </div>
+
+      <h3>¡Bienvenido, <span id="nombreUsuario">...</span>!</h3>
+      <p>Tu casillero virtual está activo y listo para recibir tus compras o paquetes.</p>
+
+      <div class="code-box">
+        <small style="color: #006644; font-weight: bold;">TU CÓDIGO DE CASILLERO</small>
+        <h3 id="codigoCasillero">Cargando...</h3>
+      </div>
+
+      <h4>📍 Dirección para enviar tus compras en Colombia:</h4>
+      <div class="address-box">
+        <strong>Nombre / Destinatario:</strong> <span id="nombreEnvio">...</span> (<span id="codigoEnvio">...</span>)<br>
+        <strong>Dirección:</strong> Calle Ficticia #123 - Bodega 4<br>
+        <strong>Ciudad / Depósito:</strong> Cúcuta / Bogotá, Colombia<br>
+        <strong>Teléfono de Recepción:</strong> +57 300 000 0000
+      </div>
+
+      <h4>📋 Instrucciones importantes:</h4>
+      <ul>
+        <li><strong>SIEMPRE</strong> incluye tu código de casillero al lado de tu nombre en la etiqueta o factura de envío.</li>
+        <li>Cuando realices una compra en tiendas de Colombia (MercadoLibre, Amazon, etc.), ingresa la dirección del depósito especificada arriba.</li>
+        <li>Notifícanos por WhatsApp cuando tu paquete esté en camino con su número de guía.</li>
+      </ul>
+
+      <button id="btnLogout" class="btn-logout">Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
+    const SUPABASE_ANON_KEY = 'PEGA_AQUI_TU_LEGACY_ANON_KEY_COMPLETA'
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    async function cargarPanel() {
+      // Verificar usuario autenticado
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        // Si no hay sesión iniciada, redirigir al registro/login
+        window.location.href = 'index.html'
+        return
+      }
+
+      // Consultar datos de la tabla perfiles
+      const { data: perfil, error } = await supabase
+        .from('perfiles')
+        .select('nombre_completo, codigo_casillero')
+        .eq('id', user.id)
+        .single()
+
+      if (error || !perfil) {
+        alert('Error al cargar la información del casillero.')
+        return
+      }
+
+      // Mostrar información en pantalla
+      document.getElementById('nombreUsuario').innerText = perfil.nombre_completo
+      document.getElementById('codigoCasillero').innerText = perfil.codigo_casillero
+      document.getElementById('nombreEnvio').innerText = perfil.nombre_completo
+      document.getElementById('codigoEnvio').innerText = perfil.codigo_casillero
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      await supabase.auth.signOut()
+      window.location.href = 'index.html'
+    })
+
+    cargarPanel()
+  </script>
+</body>
+</html>
