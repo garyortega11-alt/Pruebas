@@ -32,7 +32,6 @@
     }
     h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 20px; }
     
-    /* Estilos para las pestañas (Tabs) */
     .tabs {
       display: flex;
       border-bottom: 2px solid #dfe1e6;
@@ -90,19 +89,22 @@
     .alert-success { background: #e3fcef; color: #006644; }
     .alert-error { background: #ffebe6; color: #bf2600; }
   </style>
+  
+  <!-- Carga de Supabase JS oficial (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
   <div class="card">
     <h2>Ruta 57 Box</h2>
 
-    <!-- Selector de Pestañas -->
+    <!-- Tabs -->
     <div class="tabs">
       <button type="button" class="tab-btn active" id="tabRegistro">Crear Cuenta</button>
       <button type="button" class="tab-btn" id="tabLogin">Iniciar Sesión</button>
     </div>
 
-    <!-- FORMULARIO 1: REGISTRO -->
+    <!-- FORMULARIO REGISTRO -->
     <form id="registroForm">
       <div class="form-group">
         <label for="nombre">Nombre Completo</label>
@@ -123,7 +125,7 @@
       <button type="submit" class="btn-main" id="btnRegistro">Crear mi Casillero Gratis</button>
     </form>
 
-    <!-- FORMULARIO 2: INICIO DE SESIÓN -->
+    <!-- FORMULARIO LOGIN -->
     <form id="loginForm" style="display: none;">
       <div class="form-group">
         <label for="loginEmail">Correo Electrónico</label>
@@ -139,15 +141,13 @@
     <div id="mensaje" class="alert"></div>
   </div>
 
-  <!-- Lógica JavaScript -->
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-    // Configuración con credenciales de Ruta57Box
+  <script>
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc' 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
     
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    // Inicializar cliente global de Supabase
+    const { createClient } = window.supabase
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     const registroForm = document.getElementById('registroForm')
     const loginForm = document.getElementById('loginForm')
@@ -155,7 +155,6 @@
     const tabRegistro = document.getElementById('tabRegistro')
     const tabLogin = document.getElementById('tabLogin')
 
-    // Control de cambio de pestañas vía EventListeners
     tabRegistro.addEventListener('click', () => {
       mensajeDiv.style.display = 'none'
       registroForm.style.display = 'block'
@@ -177,7 +176,7 @@
       return `VEN-${num}`
     }
 
-    // 1. EVENTO: CREAR CUENTA
+    // REGISTRO
     registroForm.addEventListener('submit', async (e) => {
       e.preventDefault()
       const btn = document.getElementById('btnRegistro')
@@ -192,13 +191,13 @@
       const codigoCasillero = generarCodigoCasillero()
 
       try {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await _supabase.auth.signUp({
           email,
           password
         })
         if (authError) throw authError
 
-        const { error: perfilError } = await supabase
+        const { error: perfilError } = await _supabase
           .from('perfiles')
           .insert([{
             id: authData.user.id,
@@ -209,13 +208,13 @@
         if (perfilError) throw perfilError
 
         mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerHTML = `¡Cuenta creada con éxito! Redirigiendo a tu casillero...`
+        mensajeDiv.innerHTML = `¡Cuenta creada con éxito! Redirigiendo...`
         mensajeDiv.style.display = 'block'
         registroForm.reset()
 
         setTimeout(() => {
-          window.location.replace('panel.html')
-        }, 1200)
+          window.location.href = 'panel.html'
+        }, 1000)
 
       } catch (err) {
         mensajeDiv.className = 'alert alert-error'
@@ -227,7 +226,7 @@
       }
     })
 
-    // 2. EVENTO: INICIAR SESIÓN
+    // INICIO DE SESIÓN
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault()
       const btn = document.getElementById('btnLogin')
@@ -239,7 +238,7 @@
       const password = document.getElementById('loginPassword').value
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await _supabase.auth.signInWithPassword({
           email,
           password
         })
@@ -250,10 +249,9 @@
         mensajeDiv.innerText = '¡Sesión iniciada correctamente! Entrando...'
         mensajeDiv.style.display = 'block'
 
-        // Redirección asegurando la persistencia de sesión
         setTimeout(() => {
-          window.location.replace('panel.html')
-        }, 1200)
+          window.location.href = 'panel.html'
+        }, 800)
 
       } catch (err) {
         mensajeDiv.className = 'alert alert-error'
