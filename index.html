@@ -214,8 +214,8 @@
         registroForm.reset()
 
         setTimeout(() => {
-          window.location.href = 'panel.html'
-        }, 1500)
+          window.location.replace('panel.html')
+        }, 1200)
 
       } catch (err) {
         mensajeDiv.className = 'alert alert-error'
@@ -250,13 +250,14 @@
         mensajeDiv.innerText = '¡Sesión iniciada correctamente! Entrando...'
         mensajeDiv.style.display = 'block'
 
+        // Redirección asegurando la persistencia de sesión
         setTimeout(() => {
-          window.location.href = 'panel.html'
+          window.location.replace('panel.html')
         }, 1200)
 
       } catch (err) {
         mensajeDiv.className = 'alert alert-error'
-        mensajeDiv.innerText = `Error: Credenciales inválidas o ${err.message}`
+        mensajeDiv.innerText = `Error: ${err.message}`
         mensajeDiv.style.display = 'block'
       } finally {
         btn.disabled = false
