@@ -16,6 +16,7 @@
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
     .container { max-width: 900px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
     .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
     
     /* Navegación por pestañas */
@@ -29,8 +30,10 @@
     .form-group { margin-bottom: 12px; }
     label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
     input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
     .btn-danger { background: var(--accent); }
+    .btn-admin { background: #36b37e; color: white; }
+    .btn-admin:hover { background: #00875a; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
     th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
@@ -46,17 +49,20 @@
   <div class="container">
     <div class="header">
       <h2>Ruta 57 Box</h2>
-      <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
+      <div class="header-actions" id="headerActions">
+        <!-- El botón Panel Admin se insertará aquí dinámicamente si el rol es 'admin' -->
+        <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
+      </div>
     </div>
 
     <!-- Pestañas -->
     <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchTab('resumen')">Casillero</button>
-      <button class="nav-btn" onclick="switchTab('prealertas')">Pre-alertar</button>
-      <button class="nav-btn" onclick="switchTab('paquetes')">Mis Envíos</button>
-      <button class="nav-btn" onclick="switchTab('cotizador')">Cotizador</button>
-      <button class="nav-btn" onclick="switchTab('direcciones')">Direcciones</button>
-      <button class="nav-btn" onclick="switchTab('pagos')">Pagos</button>
+      <button class="nav-btn active" onclick="switchTab(event, 'resumen')">Casillero</button>
+      <button class="nav-btn" onclick="switchTab(event, 'prealertas')">Pre-alertar</button>
+      <button class="nav-btn" onclick="switchTab(event, 'paquetes')">Mis Envíos</button>
+      <button class="nav-btn" onclick="switchTab(event, 'cotizador')">Cotizador</button>
+      <button class="nav-btn" onclick="switchTab(event, 'direcciones')">Direcciones</button>
+      <button class="nav-btn" onclick="switchTab(event, 'pagos')">Pagos</button>
     </div>
 
     <!-- 1. CASILLERO Y DIRECCIÓN BODEGA -->
@@ -125,7 +131,7 @@
     <!-- 4. COTIZADOR DE TARIFAS -->
     <div id="cotizador" class="tab-content">
       <div class="card">
-        <h3>Calculadora de Envíos (Cúcuta $\rightarrow$ Venezuela)</h3>
+        <h3>Calculadora de Envíos (Cúcuta &rightarrow; Venezuela)</h3>
         <div class="form-group">
           <label>Peso estimado (Kg)</label>
           <input type="number" id="calcPeso" value="1" min="0.1" step="0.1">
@@ -187,11 +193,11 @@
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     let currentUser = null
 
-    function switchTab(tabId) {
+    function switchTab(evt, tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'))
       document.getElementById(tabId).classList.add('active')
-      event.target.classList.add('active')
+      evt.currentTarget.classList.add('active')
     }
 
     async function initApp() {
@@ -210,6 +216,17 @@
         document.getElementById('userCode').innerText = perfil.codigo_casillero
         document.getElementById('envioName').innerText = perfil.nombre_completo
         document.getElementById('envioCode').innerText = perfil.codigo_casillero
+
+        // Mostrar botón de Admin si el perfil posee el rol 'admin'
+        if (perfil.rol === 'admin' && !document.getElementById('btnIrAdmin')) {
+          const headerActions = document.getElementById('headerActions')
+          const adminBtn = document.createElement('a')
+          adminBtn.id = 'btnIrAdmin'
+          adminBtn.href = 'admin.html'
+          adminBtn.className = 'btn btn-admin'
+          adminBtn.innerText = '⚙️ Panel Admin'
+          headerActions.insertBefore(adminBtn, document.getElementById('btnLogout'))
+        }
       }
     }
 
@@ -240,19 +257,21 @@
       }
 
       paquetes.forEach(p => {
+        const peso = p.peso_kg ? `${p.peso_kg} kg` : 'Por pesar'
+        const flete = p.monto_flete ? `$${p.monto_flete}` : 'Por calcular'
         tbody.innerHTML += `
           <tr>
             <td><strong>${p.guia_transportadora}</strong><br><small>${p.tienda}</small></td>
             <td>${p.contenido}</td>
-            <td>${p.peso_kg} kg</td>
+            <td>${peso}</td>
             <td><span class="badge badge-success">${p.estado}</span></td>
-            <td>$${p.monto_flete}</td>
+            <td>${flete}</td>
           </tr>
         `
       })
     }
 
-    // Cotidador
+    // Cotizador
     function calcularTarifa() {
       const peso = parseFloat(document.getElementById('calcPeso').value) || 0
       const tarifa = parseFloat(document.getElementById('calcTipo').value)
