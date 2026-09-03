@@ -211,28 +211,32 @@
       currentUser = session.user;
       document.getElementById('userEmailDisplay').innerText = currentUser.email;
 
-      // Cargar perfil y rol de la base de datos
+      // Cargar perfil y rol de la base de datos de forma segura
       const { data, err } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle();
       if (data) {
         currentPerfil = data;
-        document.getElementById('welcomeTitle').innerText = `Hola, ${data.nombre_completo}`;
-        document.getElementById('lblNombre').innerText = data.nombre_completo;
+        const nombreUsuario = data.nombre_completo || data.nombre || currentUser.email.split('@')[0];
+        
+        document.getElementById('welcomeTitle').innerText = `Hola, ${nombreUsuario}`;
+        document.getElementById('lblNombre').innerText = nombreUsuario;
         document.getElementById('lblCasillero').innerText = data.codigo_casillero || 'VEN-XXXX';
         
-        document.getElementById('perfilNombre').value = data.nombre_completo;
+        document.getElementById('perfilNombre').value = nombreUsuario;
         document.getElementById('perfilCedula').value = data.cedula || 'No registrada';
         document.getElementById('perfilEmail').value = currentUser.email;
 
         // Si es admin, añadimos la opción en el menú lateral que redirige a admin.html
         if (data.rol === 'admin') {
           const menu = document.getElementById('navMenuContainer');
-          const adminNav = document.createElement('div');
-          adminNav.className = 'nav-item admin-link';
-          adminNav.innerHTML = '👑 Panel Admin';
-          adminNav.onclick = () => {
-            window.location.href = 'admin.html';
-          };
-          menu.appendChild(adminNav);
+          if (!document.querySelector('.admin-link')) {
+            const adminNav = document.createElement('div');
+            adminNav.className = 'nav-item admin-link';
+            adminNav.innerHTML = '👑 Panel Admin';
+            adminNav.onclick = () => {
+              window.location.href = 'admin.html';
+            };
+            menu.appendChild(adminNav);
+          }
         }
       }
       cargarMisPaquetes();
@@ -245,7 +249,8 @@
       document.getElementById(vistaId).classList.add('active');
       if (elementoNav) elementoNav.classList.add('active');
 
-      document.getElementById('welcomeTitle').innerText = `Hola, ${currentPerfil ? currentPerfil.nombre_completo : 'Usuario'}`;
+      const nombreUsuario = currentPerfil ? (currentPerfil.nombre_completo || currentPerfil.nombre || currentUser.email.split('@')[0]) : 'Usuario';
+      document.getElementById('welcomeTitle').innerText = `Hola, ${nombreUsuario}`;
       document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas internacionales.';
     }
 
