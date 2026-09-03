@@ -19,14 +19,12 @@
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
     
-    /* HEADER CORPORATIVO TIPO ZOOM */
     header { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .logo-area { display: flex; align-items: center; gap: 12px; }
     .logo-icon { background: var(--primary); color: #fff; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
     .logo-text { font-size: 1.25rem; font-weight: 700; color: var(--primary); letter-spacing: -0.025em; }
     .logo-text span { color: var(--muted); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
 
-    /* CONTENEDOR PRINCIPAL SPLIT */
     .main-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; max-width: 1100px; margin: 0 auto; width: 100%; gap: 60px; }
     
     .hero-section { flex: 1; display: none; }
@@ -37,7 +35,6 @@
     .feature-item { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.95rem; color: #334155; }
     .feature-check { color: var(--success); font-size: 1.2rem; }
 
-    /* TARJETA DE FORMULARIO */
     .auth-container { width: 100%; max-width: 420px; }
     .card { background: var(--card); padding: 36px 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
     h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 24px; font-size: 1.5rem; font-weight: 700; }
@@ -57,7 +54,6 @@
     .help-links a { color: var(--primary); cursor: pointer; font-weight: 500; text-decoration: none; }
     .help-links a:hover { text-decoration: underline; }
 
-    /* MODAL PROFESIONAL ESTILO ZOOM */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
@@ -80,7 +76,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <div class="logo-area">
       <div class="logo-icon">57</div>
@@ -88,7 +83,6 @@
     </div>
   </header>
 
-  <!-- MODAL ESTILO ZOOM -->
   <div class="modal-overlay" id="customModal">
     <div class="modal-box">
       <div class="modal-icon" id="modalIcon">i</div>
@@ -100,10 +94,7 @@
     </div>
   </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <div class="main-wrapper">
-    
-    <!-- COLUMNA IZQUIERDA: INFORMACIÓN Y VALOR DE MARCA -->
     <div class="hero-section">
       <h1 class="hero-title">Tu puerta al mundo, directo a tu puerta.</h1>
       <p class="hero-desc">Gestiona tus paquetes internacionales de forma rápida, segura y transparente con tu código personal de casillero.</p>
@@ -114,10 +105,7 @@
       </div>
     </div>
 
-    <!-- COLUMNA DERECHA: FORMULARIOS -->
     <div class="auth-container">
-      
-      <!-- FORMULARIO DE INICIO DE SESIÓN -->
       <div class="card" id="loginCard">
         <h2>Iniciar Sesión</h2>
         <form id="loginForm" onsubmit="iniciarSesion(event)">
@@ -142,7 +130,6 @@
         </div>
       </div>
 
-      <!-- FORMULARIO DE REGISTRO -->
       <div class="card hidden" id="registerCard">
         <h2>Crear Casillero</h2>
         <form id="registerForm" onsubmit="registrarUsuario(event)">
@@ -169,7 +156,6 @@
         </div>
       </div>
 
-      <!-- FORMULARIO DE RECUPERAR CONTRASEÑA -->
       <div class="card hidden" id="forgotPassCard">
         <h2>Recuperar Contraseña</h2>
         <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; text-align: center;">
@@ -185,7 +171,6 @@
         </form>
       </div>
 
-      <!-- FORMULARIO DE RECUPERAR CORREO -->
       <div class="card hidden" id="forgotEmailCard">
         <h2>Consultar Correo</h2>
         <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; text-align: center;">
@@ -200,7 +185,6 @@
           <button type="button" class="btn btn-secondary" onclick="cambiarVista('login')">Volver al Login</button>
         </form>
       </div>
-
     </div>
   </div>
 
@@ -233,15 +217,10 @@
       document.getElementById('forgotPassCard').classList.add('hidden');
       document.getElementById('forgotEmailCard').classList.add('hidden');
 
-      if (vista === 'login') {
-        document.getElementById('loginCard').classList.remove('hidden');
-      } else if (vista === 'register') {
-        document.getElementById('registerCard').classList.remove('hidden');
-      } else if (vista === 'forgotPass') {
-        document.getElementById('forgotPassCard').classList.remove('hidden');
-      } else if (vista === 'forgotEmail') {
-        document.getElementById('forgotEmailCard').classList.remove('hidden');
-      }
+      if (vista === 'login') document.getElementById('loginCard').classList.remove('hidden');
+      if (vista === 'register') document.getElementById('registerCard').classList.remove('hidden');
+      if (vista === 'forgotPass') document.getElementById('forgotPassCard').classList.remove('hidden');
+      if (vista === 'forgotEmail') document.getElementById('forgotEmailCard').classList.remove('hidden');
     }
 
     async function iniciarSesion(event) {
@@ -250,10 +229,10 @@
       const password = document.getElementById('loginPassword').value;
 
       const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-
       if (error) {
         mostrarModal("Error de acceso", error.message);
       } else {
+        // Redirige según rol o directo a panel
         window.location.href = 'panel.html';
       }
     }
@@ -266,36 +245,23 @@
       const password = document.getElementById('regPassword').value;
 
       const { data: authData, error: authError } = await _supabase.auth.signUp({ email, password });
-
       if (authError) {
         mostrarModal("Error en el registro", authError.message);
         return;
       }
 
       if (authData.user) {
-        const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
-        const codigoCasillero = `VEN-${numeroAleatorio}`;
-
+        const codigoCasillero = `VEN-${Math.floor(1000 + Math.random() * 9000)}`;
         const { error: perfilError } = await _supabase.from('perfiles').insert([
-          {
-            id: authData.user.id,
-            nombre_completo: nombre,
-            cedula: cedula,
-            codigo_casillero: codigoCasillero,
-            rol: 'cliente'
-          }
+          { id: authData.user.id, nombre_completo: nombre, cedula: cedula, codigo_casillero: codigoCasillero, rol: 'cliente' }
         ]);
 
         if (perfilError) {
-          mostrarModal("Advertencia", "Tu cuenta fue creada, pero hubo un error al asignar el casillero: " + perfilError.message);
+          mostrarModal("Advertencia", "Cuenta creada, pero hubo un error al asignar el casillero: " + perfilError.message);
         } else {
-          mostrarModal(
-            "¡Registro exitoso!", 
-            `Tu cuenta ha sido creada correctamente. Tu código de casillero asignado es: ${codigoCasillero}`, 
-            () => {
-              window.location.href = 'panel.html';
-            }
-          );
+          mostrarModal("¡Registro exitoso!", `Tu cuenta se creó. Tu casillero asignado es: ${codigoCasillero}`, () => {
+            window.location.href = 'panel.html';
+          });
         }
       }
     }
@@ -303,49 +269,25 @@
     async function recuperarPassword(event) {
       event.preventDefault();
       const email = document.getElementById('passEmail').value;
-
       const { error } = await _supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/panel.html',
       });
-
       if (error) {
-        mostrarModal("Error", "No se pudo enviar el correo de recuperación: " + error.message);
+        mostrarModal("Error", error.message);
       } else {
-        mostrarModal(
-          "Correo enviado", 
-          "Hemos enviado las instrucciones a tu correo electrónico para restablecer tu contraseña.", 
-          () => {
-            cambiarVista('login');
-          }
-        );
+        mostrarModal("Correo enviado", "Revisa tu bandeja para restablecer tu contraseña.", () => cambiarVista('login'));
       }
     }
 
     async function consultarCorreoPorCedula(event) {
       event.preventDefault();
       const cedulaBuscada = document.getElementById('queryCedula').value.trim();
+      const { data, error } = await _supabase.from('perfiles').select('nombre_completo').eq('cedula', cedulaBuscada).maybeSingle();
 
-      // Consultamos la tabla perfiles donde se guardó la cédula
-      const { data, error } = await _supabase
-        .from('perfiles')
-        .select('id, nombre_completo')
-        .eq('cedula', cedulaBuscada)
-        .maybeSingle();
-
-      if (error) {
-        mostrarModal("Error de consulta", "Ocurrió un error al buscar la cédula: " + error.message);
-        return;
-      }
-
-      if (!data) {
+      if (error || !data) {
         mostrarModal("No encontrado", "No existe ningún usuario registrado con la cédula: " + cedulaBuscada);
       } else {
-        // Nota de seguridad: Supabase oculta el correo en auth.users por seguridad pública, 
-        // pero podemos indicarle al cliente su nombre de usuario/perfil asociado y sugerirle contactar soporte o verificar su bandeja.
-        mostrarModal(
-          "Registro Encontrado", 
-          `Hola ${data.nombre_completo}. Hemos encontrado una cuenta activa vinculada a la cédula ${cedulaBuscada}. Por razones de seguridad y privacidad de datos, te sugerimos revisar tus bandejas de correo habituales (Gmail, Outlook) buscando mensajes de "Ruta 57 Box".`
-        );
+        mostrarModal("Registro Encontrado", `Hola ${data.nombre_completo}. Cuenta activa vinculada a la cédula ${cedulaBuscada}. Revisa tus bandejas de correo habituales con mensajes de Ruta 57 Box.`);
       }
     }
   </script>
