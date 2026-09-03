@@ -23,8 +23,6 @@
     input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,82,204,0.2); }
     .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; margin-top: 10px; }
     .btn:hover { opacity: 0.9; }
-    .btn-secondary { background: transparent; color: var(--primary); box-shadow: none; margin-top: 5px; }
-    .btn-secondary:hover { background: #ebecf0; opacity: 1; }
     .hidden { display: none; }
     .toggle-text { text-align: center; margin-top: 15px; font-size: 0.9rem; color: #5e6c84; cursor: pointer; }
     .toggle-text span { color: var(--primary); font-weight: bold; }
@@ -114,7 +112,7 @@
 
   <script>
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iOiJhdXRoIiwiYXVkIjoiYW5vbiIsImlhdCI6MTc4ODQ1MDUyOCwiZXhwIjoyMTA0MDI2NTI4f0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
     
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -185,7 +183,7 @@
       }
 
       if (authData.user) {
-        // 2. Generar un código de casillero aleatorio (Ej: R57-4821)
+        // 2. Generar un código de casillero aleatorio
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
         const codigoCasillero = `R57-${numeroAleatorio}`;
 
