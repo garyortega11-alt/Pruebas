@@ -98,8 +98,8 @@
 
     <!-- Selector de Pestañas -->
     <div class="tabs">
-      <button class="tab-btn active" id="tabRegistro" onclick="cambiarTab('registro')">Crear Cuenta</button>
-      <button class="tab-btn" id="tabLogin" onclick="cambiarTab('login')">Iniciar Sesión</button>
+      <button type="button" class="tab-btn active" id="tabRegistro">Crear Cuenta</button>
+      <button type="button" class="tab-btn" id="tabLogin">Iniciar Sesión</button>
     </div>
 
     <!-- FORMULARIO 1: REGISTRO -->
@@ -152,22 +152,25 @@
     const registroForm = document.getElementById('registroForm')
     const loginForm = document.getElementById('loginForm')
     const mensajeDiv = document.getElementById('mensaje')
+    const tabRegistro = document.getElementById('tabRegistro')
+    const tabLogin = document.getElementById('tabLogin')
 
-    // Función para alternar entre pestañas
-    window.cambiarTab = function(tipo) {
+    // Control de cambio de pestañas vía EventListeners
+    tabRegistro.addEventListener('click', () => {
       mensajeDiv.style.display = 'none'
-      if (tipo === 'registro') {
-        registroForm.style.display = 'block'
-        loginForm.style.display = 'none'
-        document.getElementById('tabRegistro').classList.add('active')
-        document.getElementById('tabLogin').classList.remove('active')
-      } else {
-        registroForm.style.display = 'none'
-        loginForm.style.display = 'block'
-        document.getElementById('tabRegistro').classList.remove('active')
-        document.getElementById('tabLogin').classList.add('active')
-      }
-    }
+      registroForm.style.display = 'block'
+      loginForm.style.display = 'none'
+      tabRegistro.classList.add('active')
+      tabLogin.classList.remove('active')
+    })
+
+    tabLogin.addEventListener('click', () => {
+      mensajeDiv.style.display = 'none'
+      registroForm.style.display = 'none'
+      loginForm.style.display = 'block'
+      tabLogin.classList.add('active')
+      tabRegistro.classList.remove('active')
+    })
 
     function generarCodigoCasillero() {
       const num = Math.floor(1000 + Math.random() * 9000)
