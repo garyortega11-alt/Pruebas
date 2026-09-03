@@ -68,9 +68,9 @@
       </table>
     </div>
 
-    <!-- GESTIÓN DE PAQUETES -->
+    <!-- GESTIÓN DE PAQUETES Y PRE-ALERTAS -->
     <div class="card">
-      <h3>Gestión Global de Paquetes</h3>
+      <h3>Gestión Global de Paquetes y Pre-alertas</h3>
       <table>
         <thead>
           <tr>
@@ -97,10 +97,9 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // VALIDACIÓN DE SEGURIDAD ESTRICTA (Blindada contra bloqueos)
+    // VALIDACIÓN DE SEGURIDAD ESTRICTA
     async function validarAccesoAdmin() {
       try {
-        console.log("Iniciando validación...");
         const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
 
         if (sessionError) throw sessionError;
@@ -111,22 +110,13 @@
           return;
         }
 
-        console.log("Sesión encontrada, consultando perfil para el ID:", session.user.id);
-
         const { data: perfil, error: perfilError } = await _supabase
           .from('perfiles')
           .select('rol')
           .eq('id', session.user.id)
           .maybeSingle();
 
-        if (perfilError) {
-          console.error("Error en la consulta de perfiles:", perfilError);
-          alert("Error de base de datos al verificar rol: " + perfilError.message);
-          window.location.href = "panel.html";
-          return;
-        }
-
-        if (!perfil || perfil.rol !== 'admin') {
+        if (perfilError || !perfil || perfil.rol !== 'admin') {
           alert("Acceso Restringido: Tu cuenta no posee permisos de Administrador.");
           window.location.href = "panel.html";
           return;
@@ -140,7 +130,7 @@
         cargarPaquetesAdmin();
 
       } catch (err) {
-        console.error("Excepción crítica en validarAccesoAdmin:", err);
+        console.error("Excepción en validarAccesoAdmin:", err);
         alert("Ocurrió un error inesperado al verificar credenciales: " + err.message);
         window.location.href = "panel.html";
       }
@@ -156,9 +146,9 @@
       usuarios.forEach(u => {
         tbody.innerHTML += `
           <tr>
-            <td>${u.nombre_completo}</td>
-            <td>${u.cedula}</td>
-            <td><strong>${u.codigo_casillero}</strong></td>
+            <td>${u.nombre_completo || 'Sin nombre'}</td>
+            <td>${u.cedula || 'N/A'}</td>
+            <td><strong>${u.codigo_casillero || 'N/A'}</strong></td>
             <td><span style="font-weight:bold; color: ${u.rol === 'admin' ? '#36b37e' : '#6b778c'}">${u.rol}</span></td>
             <td>
               <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="cambiarRol('${u.id}', '${u.rol === 'admin' ? 'cliente' : 'admin'}')">
@@ -176,35 +166,53 @@
     }
 
     async function cargarPaquetesAdmin() {
-      const { data: paquetes } = await _supabase.from('paquetes').select('*, perfiles(nombre_completo, codigo_casillero)');
-      const tbody = document.getElementById('tablaPaquetesAdmin');
-      tbody.innerHTML = '';
+      try {
+        const { data: paquetes, error } = await _supabase
+          .from('paquetes')
+          .select('*, perfiles(nombre_completo, codigo_casillero)')
+          .order('id', { ascending: false });
 
-      if (!paquetes) return;
+        const tbody = document.getElementById('tablaPaquetesAdmin');
+        tbody.innerHTML = '';
 
-      paquetes.forEach(p => {
-        const cliente = p.perfiles ? `${p.perfiles.nombre_completo} (${p.perfiles.codigo_casillero})` : 'Desconocido';
-        tbody.innerHTML += `
-          <tr>
-            <td>${cliente}</td>
-            <td>${p.guia_transportadora}</td>
-            <td>${p.contenido}</td>
-            <td><input type="number" step="0.1" id="peso_${p.id}" value="${p.peso_kg || ''}" style="width:70px"></td>
-            <td><input type="number" step="0.01" id="flete_${p.id}" value="${p.monto_flete || ''}" style="width:70px"></td>
-            <td>
-              <select id="estado_${p.id}">
-                <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
-                <option value="Recibido en Bodega" ${p.estado === 'Recibido en Bodega' ? 'selected' : ''}>Recibido en Bodega</option>
-                <option value="En Tránsito" ${p.estado === 'En Tránsito' ? 'selected' : ''}>En Tránsito</option>
-                <option value="Entregado" ${p.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
-              </select>
-            </td>
-            <td>
-              <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="actualizarPaquete('${p.id}')">Guardar</button>
-            </td>
-          </tr>
-        `;
-      });
+        if (error) {
+          console.error("Error al cargar paquetes:", error.message);
+          tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Error al cargar paquetes: ${error.message}</td></tr>`;
+          return;
+        }
+
+        if (!paquetes || paquetes.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#666;">No hay paquetes ni pre-alertas registradas.</td></tr>';
+          return;
+        }
+
+        paquetes.forEach(p => {
+          const cliente = p.perfiles ? `${p.perfiles.nombre_completo} (${p.perfiles.codigo_casillero})` : `Cliente ID: ${p.user_id ? p.user_id.substring(0,8) : 'Desconocido'}...`;
+          
+          tbody.innerHTML += `
+            <tr>
+              <td>${cliente}</td>
+              <td><strong>${p.guia_transportadora}</strong></td>
+              <td>${p.contenido || 'Sin descripción'}</td>
+              <td><input type="number" step="0.1" id="peso_${p.id}" value="${p.peso_kg || ''}" style="width:70px"></td>
+              <td><input type="number" step="0.01" id="flete_${p.id}" value="${p.monto_flete || ''}" style="width:70px"></td>
+              <td>
+                <select id="estado_${p.id}">
+                  <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
+                  <option value="Recibido en Bodega" ${p.estado === 'Recibido en Bodega' ? 'selected' : ''}>Recibido en Bodega</option>
+                  <option value="En Tránsito" ${p.estado === 'En Tránsito' ? 'selected' : ''}>En Tránsito</option>
+                  <option value="Entregado" ${p.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                </select>
+              </td>
+              <td>
+                <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="actualizarPaquete('${p.id}')">Guardar</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Excepción en cargarPaquetesAdmin:", err);
+      }
     }
 
     async function actualizarPaquete(paqueteId) {
@@ -221,7 +229,7 @@
       if (error) {
         alert('Error al actualizar: ' + error.message);
       } else {
-        alert('Paquete actualizado correctamente');
+        alert('Paquete y pre-alerta actualizada correctamente');
         cargarPaquetesAdmin();
       }
     }
