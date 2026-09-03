@@ -24,7 +24,7 @@
       position: relative;
     }
 
-    /* Icono de Candado Admin en la esquina */
+    /* BOTÓN FLOTANTE CANDADO ADMIN */
     .admin-access-btn {
       position: absolute;
       top: 20px;
@@ -32,13 +32,13 @@
       background: white;
       border: 1px solid #dfe1e6;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       transition: all 0.2s ease;
       color: #6b778c;
       text-decoration: none;
@@ -46,7 +46,7 @@
     .admin-access-btn:hover {
       background: #f4f5f7;
       color: var(--primary);
-      transform: scale(1.05);
+      transform: scale(1.08);
     }
 
     .card {
@@ -117,12 +117,11 @@
     .alert-error { background: #ffebe6; color: #bf2600; }
   </style>
   
-  <!-- Carga de Supabase JS oficial (UMD) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- BOTÓN FLOTANTE DE CANDADO PARA ACCESO ADMIN -->
+  <!-- BOTÓN CANDADO PARA IR AL PANEL ADMIN -->
   <a href="admin.html" class="admin-access-btn" title="Acceso Administrativo">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -133,13 +132,12 @@
   <div class="card">
     <h2>Ruta 57 Box</h2>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button type="button" class="tab-btn active" id="tabRegistro">Crear Cuenta</button>
       <button type="button" class="tab-btn" id="tabLogin">Iniciar Sesión</button>
     </div>
 
-    <!-- FORMULARIO REGISTRO -->
+    <!-- REGISTRO -->
     <form id="registroForm">
       <div class="form-group">
         <label for="nombre">Nombre Completo</label>
@@ -160,7 +158,7 @@
       <button type="submit" class="btn-main" id="btnRegistro">Crear mi Casillero Gratis</button>
     </form>
 
-    <!-- FORMULARIO LOGIN -->
+    <!-- INICIO SESIÓN -->
     <form id="loginForm" style="display: none;">
       <div class="form-group">
         <label for="loginEmail">Correo Electrónico</label>
@@ -180,7 +178,6 @@
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
     
-    // Inicializar cliente global de Supabase
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -211,7 +208,7 @@
       return `VEN-${num}`
     }
 
-    // REGISTRO
+    // REGISTRO DE USUARIOS
     registroForm.addEventListener('submit', async (e) => {
       e.preventDefault()
       const btn = document.getElementById('btnRegistro')
@@ -232,13 +229,15 @@
         })
         if (authError) throw authError
 
+        // Se inserta el perfil con rol 'cliente' por defecto
         const { error: perfilError } = await _supabase
           .from('perfiles')
           .insert([{
             id: authData.user.id,
             nombre_completo: nombre,
             cedula: cedula,
-            codigo_casillero: codigoCasillero
+            codigo_casillero: codigoCasillero,
+            rol: 'cliente'
           }])
         if (perfilError) throw perfilError
 
@@ -261,7 +260,7 @@
       }
     })
 
-    // INICIO DE SESIÓN
+    // INICIO DE SESIÓN CON REDIRECCIÓN SEGÚN ROL
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault()
       const btn = document.getElementById('btnLogin')
@@ -273,19 +272,31 @@
       const password = document.getElementById('loginPassword').value
 
       try {
-        const { data, error } = await _supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
           email,
           password
         })
 
-        if (error) throw error
+        if (authError) throw authError
+
+        // Consultar el rol en perfiles
+        const { data: perfil } = await _supabase
+          .from('perfiles')
+          .select('rol')
+          .eq('id', authData.user.id)
+          .single()
 
         mensajeDiv.className = 'alert alert-success'
-        mensajeDiv.innerText = '¡Sesión iniciada correctamente! Entrando...'
+        mensajeDiv.innerText = '¡Sesión iniciada correctamente! Redirigiendo...'
         mensajeDiv.style.display = 'block'
 
         setTimeout(() => {
-          window.location.href = 'panel.html'
+          // Si el usuario tiene rol 'admin', va directo a admin.html
+          if (perfil && perfil.rol === 'admin') {
+            window.location.href = 'admin.html'
+          } else {
+            window.location.href = 'panel.html'
+          }
         }, 800)
 
       } catch (err) {
