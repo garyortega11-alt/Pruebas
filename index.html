@@ -93,8 +93,8 @@
     <div class="header-row">
       <h2 id="formTitle">Iniciar Sesión</h2>
       
-      <!-- CANDADO PROTEGIDO -->
-      <button onclick="solicitarAccesoAdmin()" class="btn-lock" title="Acceso Administrativo">
+      <!-- CANDADO PROTEGIDO (type="button" previene envíos accidentales del formulario) -->
+      <button type="button" onclick="solicitarAccesoAdmin()" class="btn-lock" title="Acceso Administrativo">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -193,14 +193,30 @@
       }
     })
 
-    // Función de seguridad del Candado
-    function solicitarAccesoAdmin() {
-      const clave = prompt("Ingrese la clave de acceso administrativo:");
-      if (clave === "Ruta57Admin*") {
-        window.location.href = "admin.html";
-      } else if (clave !== null) {
-        alert("Clave incorrecta. Acceso denegado.");
+    // Función de seguridad del Candado por Rol de Supabase
+    async function solicitarAccesoAdmin() {
+      // 1. Obtener la sesión activa del usuario
+      const { data: { session } } = await _supabase.auth.getSession();
+
+      if (!session) {
+        alert("Inicia sesión con tu cuenta de Administrador primero.");
+        return;
       }
+
+      // 2. Verificar el rol en la base de datos
+      const { data: perfil, error } = await _supabase
+        .from('perfiles')
+        .select('rol')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (error || !perfil || perfil.rol !== 'admin') {
+        alert("Acceso denegado: Tu usuario no tiene permisos de administrador.");
+        return;
+      }
+
+      // 3. Redirigir a la vista administrativa si es un usuario admin
+      window.location.href = "admin.html";
     }
   </script>
 </body>
