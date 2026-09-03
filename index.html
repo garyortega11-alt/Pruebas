@@ -47,9 +47,15 @@
     input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,69,129,0.15); }
     .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s; margin-top: 8px; box-shadow: 0 4px 6px -1px rgba(0,69,129,0.2); }
     .btn:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #64748b; margin-top: 8px; }
+    .btn-secondary:hover { background: #475569; }
     .hidden { display: none; }
     .toggle-text { text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
     .toggle-text span { color: var(--primary); font-weight: 600; text-decoration: underline; }
+    
+    .help-links { display: flex; justify-content: space-between; font-size: 0.82rem; margin-top: -8px; margin-bottom: 16px; }
+    .help-links a { color: var(--primary); cursor: pointer; font-weight: 500; text-decoration: none; }
+    .help-links a:hover { text-decoration: underline; }
 
     /* MODAL PROFESIONAL ESTILO ZOOM */
     .modal-overlay {
@@ -108,7 +114,7 @@
       </div>
     </div>
 
-    <!-- COLUMNA DERECHA: FORMULARIO DE ACCESO / REGISTRO -->
+    <!-- COLUMNA DERECHA: FORMULARIOS -->
     <div class="auth-container">
       
       <!-- FORMULARIO DE INICIO DE SESIÓN -->
@@ -123,9 +129,15 @@
             <label>Contraseña</label>
             <input type="password" id="loginPassword" required placeholder="••••••••">
           </div>
+          
+          <div class="help-links">
+            <a onclick="cambiarVista('forgotPass')">¿Olvidaste tu clave?</a>
+            <a onclick="cambiarVista('forgotEmail')">¿Olvidaste tu correo?</a>
+          </div>
+
           <button type="submit" class="btn">Entrar a mi Cuenta</button>
         </form>
-        <div class="toggle-text" onclick="alternarFormularios()">
+        <div class="toggle-text" onclick="cambiarVista('register')">
           ¿No tienes una cuenta? <span>Regístrate aquí</span>
         </div>
       </div>
@@ -152,9 +164,41 @@
           </div>
           <button type="submit" class="btn">Registrarse</button>
         </form>
-        <div class="toggle-text" onclick="alternarFormularios()">
+        <div class="toggle-text" onclick="cambiarVista('login')">
           ¿Ya tienes cuenta? <span>Inicia sesión</span>
         </div>
+      </div>
+
+      <!-- FORMULARIO DE RECUPERAR CONTRASEÑA -->
+      <div class="card hidden" id="forgotPassCard">
+        <h2>Recuperar Contraseña</h2>
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; text-align: center;">
+          Ingresa tu correo y te enviaremos instrucciones para restablecer tu contraseña.
+        </p>
+        <form onsubmit="recuperarPassword(event)">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="passEmail" required placeholder="tu@correo.com">
+          </div>
+          <button type="submit" class="btn">Enviar Enlace</button>
+          <button type="button" class="btn btn-secondary" onclick="cambiarVista('login')">Volver al Login</button>
+        </form>
+      </div>
+
+      <!-- FORMULARIO DE RECUPERAR CORREO -->
+      <div class="card hidden" id="forgotEmailCard">
+        <h2>Consultar Correo</h2>
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; text-align: center;">
+          Ingresa tu número de Cédula de Identidad para verificar el correo asociado a tu cuenta.
+        </p>
+        <form onsubmit="consultarCorreoPorCedula(event)">
+          <div class="form-group">
+            <label>Cédula de Identidad</label>
+            <input type="text" id="queryCedula" required placeholder="Ej: V-12345678">
+          </div>
+          <button type="submit" class="btn">Buscar Correo</button>
+          <button type="button" class="btn btn-secondary" onclick="cambiarVista('login')">Volver al Login</button>
+        </form>
       </div>
 
     </div>
@@ -183,9 +227,21 @@
       document.getElementById('customModal').classList.remove('active');
     }
 
-    function alternarFormularios() {
-      document.getElementById('loginCard').classList.toggle('hidden');
-      document.getElementById('registerCard').classList.toggle('hidden');
+    function cambiarVista(vista) {
+      document.getElementById('loginCard').classList.add('hidden');
+      document.getElementById('registerCard').classList.add('hidden');
+      document.getElementById('forgotPassCard').classList.add('hidden');
+      document.getElementById('forgotEmailCard').classList.add('hidden');
+
+      if (vista === 'login') {
+        document.getElementById('loginCard').classList.remove('hidden');
+      } else if (vista === 'register') {
+        document.getElementById('registerCard').classList.remove('hidden');
+      } else if (vista === 'forgotPass') {
+        document.getElementById('forgotPassCard').classList.remove('hidden');
+      } else if (vista === 'forgotEmail') {
+        document.getElementById('forgotEmailCard').classList.remove('hidden');
+      }
     }
 
     async function iniciarSesion(event) {
@@ -241,6 +297,55 @@
             }
           );
         }
+      }
+    }
+
+    async function recuperarPassword(event) {
+      event.preventDefault();
+      const email = document.getElementById('passEmail').value;
+
+      const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/panel.html',
+      });
+
+      if (error) {
+        mostrarModal("Error", "No se pudo enviar el correo de recuperación: " + error.message);
+      } else {
+        mostrarModal(
+          "Correo enviado", 
+          "Hemos enviado las instrucciones a tu correo electrónico para restablecer tu contraseña.", 
+          () => {
+            cambiarVista('login');
+          }
+        );
+      }
+    }
+
+    async function consultarCorreoPorCedula(event) {
+      event.preventDefault();
+      const cedulaBuscada = document.getElementById('queryCedula').value.trim();
+
+      // Consultamos la tabla perfiles donde se guardó la cédula
+      const { data, error } = await _supabase
+        .from('perfiles')
+        .select('id, nombre_completo')
+        .eq('cedula', cedulaBuscada)
+        .maybeSingle();
+
+      if (error) {
+        mostrarModal("Error de consulta", "Ocurrió un error al buscar la cédula: " + error.message);
+        return;
+      }
+
+      if (!data) {
+        mostrarModal("No encontrado", "No existe ningún usuario registrado con la cédula: " + cedulaBuscada);
+      } else {
+        // Nota de seguridad: Supabase oculta el correo en auth.users por seguridad pública, 
+        // pero podemos indicarle al cliente su nombre de usuario/perfil asociado y sugerirle contactar soporte o verificar su bandeja.
+        mostrarModal(
+          "Registro Encontrado", 
+          `Hola ${data.nombre_completo}. Hemos encontrado una cuenta activa vinculada a la cédula ${cedulaBuscada}. Por razones de seguridad y privacidad de datos, te sugerimos revisar tus bandejas de correo habituales (Gmail, Outlook) buscando mensajes de "Ruta 57 Box".`
+        );
       }
     }
   </script>
