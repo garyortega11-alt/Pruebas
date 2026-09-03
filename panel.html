@@ -3,90 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Casillero | Ruta 57 Box</title>
+  <title>Panel de Casillero | Ruta 57 Box</title>
   <style>
     :root {
       --primary: #0052cc;
-      --background: #f4f5f7;
+      --bg: #f4f5f7;
       --card: #ffffff;
       --text: #172b4d;
       --accent: #de350b;
+      --success: #00875a;
     }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: var(--background);
-      color: var(--text);
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      width: 100%;
-      max-width: 600px;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: var(--primary);
-    }
-    .btn-logout {
-      background-color: #ffebe6;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .btn-logout:hover {
-      background-color: var(--accent);
-      color: white;
-    }
-    .card {
-      background: var(--card);
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    .casillero-box {
-      background-color: #deebff;
-      border: 2px dashed var(--primary);
-      padding: 15px;
-      border-radius: 6px;
-      text-align: center;
-      margin-top: 15px;
-    }
-    .casillero-code {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--primary);
-      letter-spacing: 2px;
-    }
-    .instrucciones {
-      background: #fafbfc;
-      border-left: 4px solid var(--primary);
-      padding: 15px;
-      margin-top: 15px;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    .error-banner {
-      background-color: #ffebe6;
-      color: #bf2600;
-      padding: 12px;
-      border-radius: 4px;
-      margin-bottom: 15px;
-      display: none;
-      font-size: 0.9rem;
-    }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    
+    /* Navegación por pestañas */
+    .nav-tabs { display: flex; gap: 10px; border-bottom: 2px solid #dfe1e6; margin-bottom: 20px; overflow-x: auto; }
+    .nav-btn { padding: 10px 15px; border: none; background: none; font-weight: bold; color: #6b778c; cursor: pointer; border-bottom: 3px solid transparent; }
+    .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Formularios y tablas */
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn-danger { background: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { border: 1px solid #dfe1e6; padding: 10px; text-align: left; }
+    th { background: #fafbfc; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; background: #6b778c; }
+    .badge-success { background: var(--success); }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -95,33 +45,138 @@
 
   <div class="container">
     <div class="header">
-      <h1>Ruta 57 Box</h1>
-      <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+      <h2>Ruta 57 Box</h2>
+      <button class="btn btn-danger" id="btnLogout">Cerrar Sesión</button>
     </div>
 
-    <div id="errorBanner" class="error-banner"></div>
+    <!-- Pestañas -->
+    <div class="nav-tabs">
+      <button class="nav-btn active" onclick="switchTab('resumen')">Casillero</button>
+      <button class="nav-btn" onclick="switchTab('prealertas')">Pre-alertar</button>
+      <button class="nav-btn" onclick="switchTab('paquetes')">Mis Envíos</button>
+      <button class="nav-btn" onclick="switchTab('cotizador')">Cotizador</button>
+      <button class="nav-btn" onclick="switchTab('direcciones')">Direcciones</button>
+      <button class="nav-btn" onclick="switchTab('pagos')">Pagos</button>
+    </div>
 
-    <div class="card">
-      <h2>¡Hola, <span id="nombreUsuario">Cargando...</span>!</h2>
-      <p>Bienvenido a tu panel de control de envíos hacia Venezuela.</p>
-      
-      <div class="casillero-box">
-        <div>Tu Código de Casillero es:</div>
-        <div class="casillero-code" id="codigoCasillero">...</div>
+    <!-- 1. CASILLERO Y DIRECCIÓN BODEGA -->
+    <div id="resumen" class="tab-content active">
+      <div class="card">
+        <h3>Bienvenido, <span id="userName">...</span></h3>
+        <p>Tu Código de Casillero: <strong id="userCode" style="color: var(--primary); font-size: 1.2rem;">...</strong></p>
+        <hr>
+        <h4>Dirección de Envío en Cúcuta (Colombia):</h4>
+        <p>
+          <strong>Nombre:</strong> <span id="envioName">...</span> (<span id="envioCode">...</span>)<br>
+          <strong>Dirección:</strong> Carrera 15 # 45-20 (Bodega Ruta 57 Box)<br>
+          <strong>Ciudad:</strong> Cúcuta, Norte de Santander<br>
+          <strong>Teléfono:</strong> +57 300 123 4567
+        </p>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Dirección para tus Compras en Colombia</h3>
-      <p>Cuando compres en tiendas de Colombia, envía tus paquetes a la siguiente dirección:</p>
-      
-      <div class="instrucciones">
-        <strong>Nombre:</strong> <span id="nombreEnvio">...</span> (<span id="codigoEnvio">...</span>)<br>
-        <strong>Dirección:</strong> Carrera 15 # 45-20 (Bodega Ruta 57 Box)<br>
-        <strong>Ciudad/Dep:</strong> Cúcuta, Norte de Santander<br>
-        <strong>Teléfono:</strong> +57 300 123 4567
+    <!-- 2. PRE-ALERTAR COMPRA -->
+    <div id="prealertas" class="tab-content">
+      <div class="card">
+        <h3>Pre-alertar Paquete en Camino</h3>
+        <form id="formPrealerta">
+          <div class="form-group">
+            <label>N° Guía de la Transportadora (Coordinadora, Servientrega, etc.)</label>
+            <input type="text" id="paqGuia" required placeholder="Ej. 123456789">
+          </div>
+          <div class="form-group">
+            <label>Tienda / Origen</label>
+            <input type="text" id="paqTienda" required placeholder="Ej. MercadoLibre, Amazon">
+          </div>
+          <div class="form-group">
+            <label>Contenido del Paquete</label>
+            <input type="text" id="paqContenido" required placeholder="Ej. Zapatos deportivos y Ropa">
+          </div>
+          <div class="form-group">
+            <label>Valor Declarado (COP / USD)</label>
+            <input type="number" id="paqValor" required step="0.01">
+          </div>
+          <button type="submit" class="btn">Registrar Pre-alerta</button>
+        </form>
       </div>
     </div>
+
+    <!-- 3. RASTREO Y PAQUETES -->
+    <div id="paquetes" class="tab-content">
+      <div class="card">
+        <h3>Estado de tus Paquetes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Guía / Tienda</th>
+              <th>Contenido</th>
+              <th>Peso</th>
+              <th>Estado</th>
+              <th>Flete</th>
+            </tr>
+          </thead>
+          <tbody id="tablaPaquetes">
+            <tr><td colspan="5">Cargando paquetes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. COTIZADOR DE TARIFAS -->
+    <div id="cotizador" class="tab-content">
+      <div class="card">
+        <h3>Calculadora de Envíos (Cúcuta $\rightarrow$ Venezuela)</h3>
+        <div class="form-group">
+          <label>Peso estimado (Kg)</label>
+          <input type="number" id="calcPeso" value="1" min="0.1" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Transporte</label>
+          <select id="calcTipo">
+            <option value="5">Aéreo ($5.00 / Kg)</option>
+            <option value="2.5">Marítimo ($2.50 / Kg)</option>
+          </select>
+        </div>
+        <button class="btn" onclick="calcularTarifa()">Calcular Costo</button>
+        <h4 id="resCotizacion" style="margin-top: 15px; color: var(--primary);"></h4>
+      </div>
+    </div>
+
+    <!-- 5. DIRECCIONES DE ENTREGA -->
+    <div id="direcciones" class="tab-content">
+      <div class="card">
+        <h3>Agregar Dirección de Entrega en Venezuela</h3>
+        <form id="formDireccion">
+          <div class="form-group"><label>Alias (Ej. Casa / Oficina)</label><input type="text" id="dirAlias" required></div>
+          <div class="form-group"><label>Nombre del Destinatario</label><input type="text" id="dirNombre" required></div>
+          <div class="form-group"><label>Cédula / RIF</label><input type="text" id="dirCedula" required></div>
+          <div class="form-group"><label>Ciudad y Estado</label><input type="text" id="dirCiudad" required placeholder="Ej. Valencia, Carabobo"></div>
+          <div class="form-group"><label>Dirección Exacta o Agencia (MRW/Tealca/Zoom)</label><textarea id="dirExacta" required></textarea></div>
+          <button type="submit" class="btn">Guardar Dirección</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 6. REPORTAR PAGOS -->
+    <div id="pagos" class="tab-content">
+      <div class="card">
+        <h3>Reportar Pago de Flete</h3>
+        <form id="formPago">
+          <div class="form-group">
+            <label>Método de Pago</label>
+            <select id="pagoMetodo">
+              <option>Pago Móvil</option>
+              <option>Zelle</option>
+              <option>Transferencia Bancaria</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Número de Referencia</label><input type="text" id="pagoRef" required></div>
+          <div class="form-group"><label>Monto Transferido ($ / Bs)</label><input type="number" id="pagoMonto" required step="0.01"></div>
+          <button type="submit" class="btn">Enviar Comprobante</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -130,77 +185,115 @@
     
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    let currentUser = null
 
-    function mostrarError(mensaje) {
-      const banner = document.getElementById('errorBanner')
-      banner.innerText = mensaje
-      banner.style.display = 'block'
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'))
+      document.getElementById(tabId).classList.add('active')
+      event.target.classList.add('active')
     }
 
-    async function cargarPanel() {
-      try {
-        // 1. Verificar si existe la sesión activa
-        const { data: { session }, error: sessionError } = await _supabase.auth.getSession()
+    async function initApp() {
+      const { data: { session } } = await _supabase.auth.getSession()
+      if (!session) { window.location.href = 'index.html'; return; }
+      
+      currentUser = session.user
+      cargarPerfil()
+      cargarPaquetes()
+    }
 
-        if (sessionError || !session) {
-          // ÚNICO MOTIVO DE REDIRECCIÓN: Si realmente no hay un usuario logueado
-          window.location.href = 'index.html'
-          return
-        }
-
-        const user = session.user
-
-        // 2. Intentar obtener el perfil del usuario
-        let { data: perfil, error: perfilError } = await _supabase
-          .from('perfiles')
-          .select('nombre_completo, codigo_casillero')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        // 3. Si no existe registro en la tabla perfiles, creamos uno básico de recuperación
-        if (!perfil) {
-          const codigoGenerado = 'VEN-' + Math.floor(1000 + Math.random() * 9000)
-          const nombreDefault = user.email.split('@')[0]
-
-          const { data: nuevoPerfil, error: insertError } = await _supabase
-            .from('perfiles')
-            .insert([{
-              id: user.id,
-              nombre_completo: nombreDefault,
-              cedula: 'N/A',
-              codigo_casillero: codigoGenerado
-            }])
-            .select()
-            .single()
-
-          if (insertError) {
-            mostrarError(`Error de Base de Datos / RLS: ${insertError.message}`)
-            document.getElementById('nombreUsuario').innerText = user.email
-            document.getElementById('codigoCasillero').innerText = 'ERROR'
-            return
-          }
-
-          perfil = nuevoPerfil
-        }
-
-        // 4. Mostrar datos en la pantalla
-        document.getElementById('nombreUsuario').innerText = perfil.nombre_completo || user.email
-        document.getElementById('codigoCasillero').innerText = perfil.codigo_casillero || 'SIN CÓDIGO'
-        document.getElementById('nombreEnvio').innerText = perfil.nombre_completo || user.email
-        document.getElementById('codigoEnvio').innerText = perfil.codigo_casillero || 'SIN CÓDIGO'
-
-      } catch (err) {
-        console.error(err)
-        mostrarError(`Excepción inesperada: ${err.message}`)
+    async function cargarPerfil() {
+      let { data: perfil } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle()
+      if (perfil) {
+        document.getElementById('userName').innerText = perfil.nombre_completo
+        document.getElementById('userCode').innerText = perfil.codigo_casillero
+        document.getElementById('envioName').innerText = perfil.nombre_completo
+        document.getElementById('envioCode').innerText = perfil.codigo_casillero
       }
     }
+
+    // Registrar Pre-alerta
+    document.getElementById('formPrealerta').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      await _supabase.from('paquetes').insert([{
+        user_id: currentUser.id,
+        guia_transportadora: document.getElementById('paqGuia').value,
+        tienda: document.getElementById('paqTienda').value,
+        contenido: document.getElementById('paqContenido').value,
+        valor_declarado: document.getElementById('paqValor').value
+      }])
+      alert('¡Pre-alerta registrada!')
+      document.getElementById('formPrealerta').reset()
+      cargarPaquetes()
+    })
+
+    // Consultar Paquetes
+    async function cargarPaquetes() {
+      const { data: paquetes } = await _supabase.from('paquetes').select('*').eq('user_id', currentUser.id)
+      const tbody = document.getElementById('tablaPaquetes')
+      tbody.innerHTML = ''
+      
+      if (!paquetes || paquetes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">No tienes paquetes registrados.</td></tr>'
+        return
+      }
+
+      paquetes.forEach(p => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${p.guia_transportadora}</strong><br><small>${p.tienda}</small></td>
+            <td>${p.contenido}</td>
+            <td>${p.peso_kg} kg</td>
+            <td><span class="badge badge-success">${p.estado}</span></td>
+            <td>$${p.monto_flete}</td>
+          </tr>
+        `
+      })
+    }
+
+    // Cotidador
+    function calcularTarifa() {
+      const peso = parseFloat(document.getElementById('calcPeso').value) || 0
+      const tarifa = parseFloat(document.getElementById('calcTipo').value)
+      const total = peso * tarifa
+      document.getElementById('resCotizacion').innerText = `Costo Estimado: $${total.toFixed(2)} USD`
+    }
+
+    // Guardar Dirección
+    document.getElementById('formDireccion').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      await _supabase.from('direcciones').insert([{
+        user_id: currentUser.id,
+        alias: document.getElementById('dirAlias').value,
+        destinatario: document.getElementById('dirNombre').value,
+        cedula_destinatario: document.getElementById('dirCedula').value,
+        ciudad: document.getElementById('dirCiudad').value,
+        direccion_exacta: document.getElementById('dirExacta').value
+      }])
+      alert('Dirección guardada correctamente')
+      document.getElementById('formDireccion').reset()
+    })
+
+    // Reportar Pago
+    document.getElementById('formPago').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      await _supabase.from('pagos').insert([{
+        user_id: currentUser.id,
+        metodo_pago: document.getElementById('pagoMetodo').value,
+        referencia: document.getElementById('pagoRef').value,
+        monto: document.getElementById('pagoMonto').value
+      }])
+      alert('Comprobante enviado a verificación')
+      document.getElementById('formPago').reset()
+    })
 
     document.getElementById('btnLogout').addEventListener('click', async () => {
       await _supabase.auth.signOut()
       window.location.href = 'index.html'
     })
 
-    cargarPanel()
+    initApp()
   </script>
 </body>
 </html>
