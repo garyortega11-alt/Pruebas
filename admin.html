@@ -14,7 +14,7 @@
       --success: #00875a;
     }
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-    .container { max-width: 1050px; margin: 0 auto; }
+    .container { max-width: 1100px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .header-actions { display: flex; gap: 10px; }
     .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
@@ -78,7 +78,7 @@
             <th>Peso (Kg)</th>
             <th>Flete ($)</th>
             <th>Estado</th>
-            <th>Acción</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tablaPaquetesAdmin">
@@ -155,13 +155,12 @@
       cargarUsuarios();
     }
 
-    // CARGA BLINDADA DE PAQUETES (SIN FALLAS DE RELACIÓN)
+    // CARGA DE PAQUETES
     async function cargarPaquetesAdmin() {
       const tbody = document.getElementById('tablaPaquetesAdmin');
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Cargando paquetes y pre-alertas...</td></tr>';
 
       try {
-        // 1. Traer todos los paquetes directamente
         const { data: paquetes, error: errorPaquetes } = await _supabase
           .from('paquetes')
           .select('*')
@@ -177,7 +176,6 @@
           return;
         }
 
-        // 2. Traer todos los perfiles para asociarlos por ID en JavaScript
         const { data: perfiles } = await _supabase.from('perfiles').select('id, nombre_completo, codigo_casillero');
         const mapaPerfiles = {};
         if (perfiles) {
@@ -206,7 +204,10 @@
                 </select>
               </td>
               <td>
-                <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="actualizarPaquete('${p.id}')">Guardar</button>
+                <div style="display: flex; gap: 5px;">
+                  <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="actualizarPaquete('${p.id}')">Guardar</button>
+                  <button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="eliminarPaquete('${p.id}')">Borrar</button>
+                </div>
               </td>
             </tr>
           `;
@@ -233,6 +234,25 @@
         alert('Error al actualizar: ' + error.message);
       } else {
         alert('¡Paquete actualizado correctamente!');
+        cargarPaquetesAdmin();
+      }
+    }
+
+    // NUEVA FUNCIÓN PARA ELIMINAR PAQUETES / PRE-ALERTAS
+    async function eliminarPaquete(paqueteId) {
+      if (!confirm("¿Estás seguro de que deseas eliminar este paquete o pre-alerta?")) {
+        return;
+      }
+
+      const { error } = await _supabase
+        .from('paquetes')
+        .delete()
+        .eq('id', paqueteId);
+
+      if (error) {
+        alert('Error al eliminar: ' + error.message);
+      } else {
+        alert('Paquete eliminado exitosamente.');
         cargarPaquetesAdmin();
       }
     }
