@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso | Ruta 57 Box</title>
+  <title>Acceso y Gestión | Casilleros Ruta 57 Box</title>
   <style>
     :root {
       --primary: #004581;
@@ -16,21 +16,42 @@
       --accent: #e11d48;
       --success: #16a34a;
     }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .auth-container { width: 100%; max-width: 440px; padding: 20px; box-sizing: border-box; }
-    .card { background: var(--card); padding: 36px 30px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-    h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 28px; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.875rem; color: #334155; }
-    input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 1rem; color: var(--text); background-color: #fff; transition: all 0.2s; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    /* HEADER CORPORATIVO TIPO ZOOM */
+    header { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { background: var(--primary); color: #fff; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
+    .logo-text { font-size: 1.25rem; font-weight: 700; color: var(--primary); letter-spacing: -0.025em; }
+    .logo-text span { color: var(--muted); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
+
+    /* CONTENEDOR PRINCIPAL SPLIT */
+    .main-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; max-width: 1100px; margin: 0 auto; width: 100%; gap: 60px; }
+    
+    .hero-section { flex: 1; display: none; }
+    @media (min-width: 900px) { .hero-section { display: block; } }
+    .hero-title { font-size: 2.5rem; font-weight: 800; color: var(--primary); line-height: 1.2; margin-bottom: 20px; letter-spacing: -0.03em; }
+    .hero-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.6; margin-bottom: 30px; }
+    .feature-list { display: flex; flex-direction: column; gap: 14px; }
+    .feature-item { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.95rem; color: #334155; }
+    .feature-check { color: var(--success); font-size: 1.2rem; }
+
+    /* TARJETA DE FORMULARIO */
+    .auth-container { width: 100%; max-width: 420px; }
+    .card { background: var(--card); padding: 36px 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 24px; font-size: 1.5rem; font-weight: 700; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #334155; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); background-color: #fff; transition: all 0.2s; }
     input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,69,129,0.15); }
-    .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s; margin-top: 12px; box-shadow: 0 4px 6px -1px rgba(0,69,129,0.2); }
+    .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s; margin-top: 8px; box-shadow: 0 4px 6px -1px rgba(0,69,129,0.2); }
     .btn:hover { background: var(--primary-hover); }
     .hidden { display: none; }
-    .toggle-text { text-align: center; margin-top: 22px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
+    .toggle-text { text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
     .toggle-text span { color: var(--primary); font-weight: 600; text-decoration: underline; }
 
-    /* ESTILOS PARA MODAL PROFESIONAL TIPO ZOOM */
+    /* MODAL PROFESIONAL ESTILO ZOOM */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
@@ -39,22 +60,29 @@
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-box {
-      background: #fff; width: 100%; max-width: 420px; padding: 30px;
-      border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      background: #fff; width: 100%; max-width: 400px; padding: 30px;
+      border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
       text-align: center; transform: scale(0.95); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .modal-overlay.active .modal-box { transform: scale(1); }
-    .modal-icon { width: 50px; height: 50px; border-radius: 50%; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem; font-weight: bold; }
-    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: var(--text); }
-    .modal-text { font-size: 0.95rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; word-break: break-word; }
-    .modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .modal-icon { width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.4rem; font-weight: bold; }
+    .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .modal-text { font-size: 0.92rem; color: var(--muted); margin-bottom: 22px; line-height: 1.5; word-break: break-word; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- MODAL / POPUP ESTILO ZOOM -->
+  <!-- HEADER -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">57</div>
+      <div class="logo-text">Ruta 57 Box <span>Casillero Internacional</span></div>
+    </div>
+  </header>
+
+  <!-- MODAL ESTILO ZOOM -->
   <div class="modal-overlay" id="customModal">
     <div class="modal-box">
       <div class="modal-icon" id="modalIcon">i</div>
@@ -66,74 +94,85 @@
     </div>
   </div>
 
-  <div class="auth-container">
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-wrapper">
     
-    <!-- FORMULARIO DE INICIO DE SESIÓN -->
-    <div class="card" id="loginCard">
-      <h2>Iniciar Sesión</h2>
-      <form id="loginForm" onsubmit="iniciarSesion(event)">
-        <div class="form-group">
-          <label>Correo Electrónico</label>
-          <input type="email" id="loginEmail" required placeholder="tu@correo.com">
-        </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="loginPassword" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn">Entrar</button>
-      </form>
-      <div class="toggle-text" onclick="alternarFormularios()">
-        ¿No tienes cuenta? <span>Regístrate aquí</span>
+    <!-- COLUMNA IZQUIERDA: INFORMACIÓN Y VALOR DE MARCA -->
+    <div class="hero-section">
+      <h1 class="hero-title">Tu puerta al mundo, directo a tu puerta.</h1>
+      <p class="hero-desc">Gestiona tus paquetes internacionales de forma rápida, segura y transparente con tu código personal de casillero.</p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="feature-check">✓</span> Casillero personal automático con prefijo VEN-</div>
+        <div class="feature-item"><span class="feature-check">✓</span> Control de estado y tracking en tiempo real</div>
+        <div class="feature-item"><span class="feature-check">✓</span> Consolidación y atención profesional</div>
       </div>
     </div>
 
-    <!-- FORMULARIO DE REGISTRO -->
-    <div class="card hidden" id="registerCard">
-      <h2>Crear Cuenta</h2>
-      <form id="registerForm" onsubmit="registrarUsuario(event)">
-        <div class="form-group">
-          <label>Nombre Completo</label>
-          <input type="text" id="regNombre" required placeholder="Gary Ortega">
+    <!-- COLUMNA DERECHA: FORMULARIO DE ACCESO / REGISTRO -->
+    <div class="auth-container">
+      
+      <!-- FORMULARIO DE INICIO DE SESIÓN -->
+      <div class="card" id="loginCard">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm" onsubmit="iniciarSesion(event)">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="loginEmail" required placeholder="tu@correo.com">
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn">Entrar a mi Cuenta</button>
+        </form>
+        <div class="toggle-text" onclick="alternarFormularios()">
+          ¿No tienes una cuenta? <span>Regístrate aquí</span>
         </div>
-        <div class="form-group">
-          <label>Cédula de Identidad</label>
-          <input type="text" id="regCedula" required placeholder="V-12345678">
-        </div>
-        <div class="form-group">
-          <label>Correo Electrónico</label>
-          <input type="email" id="regEmail" required placeholder="tu@correo.com">
-        </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="regPassword" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn">Registrarse</button>
-      </form>
-      <div class="toggle-text" onclick="alternarFormularios()">
-        ¿Ya tienes cuenta? <span>Inicia sesión</span>
       </div>
-    </div>
 
+      <!-- FORMULARIO DE REGISTRO -->
+      <div class="card hidden" id="registerCard">
+        <h2>Crear Casillero</h2>
+        <form id="registerForm" onsubmit="registrarUsuario(event)">
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="regNombre" required placeholder="Gary Ortega">
+          </div>
+          <div class="form-group">
+            <label>Cédula de Identidad</label>
+            <input type="text" id="regCedula" required placeholder="V-12345678">
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="regEmail" required placeholder="tu@correo.com">
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="regPassword" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn">Registrarse</button>
+        </form>
+        <div class="toggle-text" onclick="alternarFormularios()">
+          ¿Ya tienes cuenta? <span>Inicia sesión</span>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
-    // LLAVE API CORREGIDA Y VALIDADADA
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
     
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // FUNCIONES DE MODAL ESTILO ZOOM
     function mostrarModal(titulo, texto, callback = null) {
       document.getElementById('modalTitle').innerText = titulo;
       document.getElementById('modalText').innerText = texto;
       const actionsDiv = document.getElementById('modalActions');
-      
       actionsDiv.innerHTML = `<button class="btn" style="margin-top:0;" id="btnModalOk">Aceptar</button>`;
-      
       document.getElementById('customModal').classList.add('active');
-      
       document.getElementById('btnModalOk').onclick = () => {
         cerrarModal();
         if (callback) callback();
@@ -144,24 +183,17 @@
       document.getElementById('customModal').classList.remove('active');
     }
 
-    // ALTERNAR ENTRE VISTAS DE LOGIN Y REGISTRO
     function alternarFormularios() {
-      const loginCard = document.getElementById('loginCard');
-      const registerCard = document.getElementById('registerCard');
-      loginCard.classList.toggle('hidden');
-      registerCard.classList.toggle('hidden');
+      document.getElementById('loginCard').classList.toggle('hidden');
+      document.getElementById('registerCard').classList.toggle('hidden');
     }
 
-    // PROCESO DE INICIO DE SESIÓN
     async function iniciarSesion(event) {
       event.preventDefault();
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
 
-      const { data, error } = await _supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         mostrarModal("Error de acceso", error.message);
@@ -170,7 +202,6 @@
       }
     }
 
-    // PROCESO DE REGISTRO
     async function registrarUsuario(event) {
       event.preventDefault();
       const nombre = document.getElementById('regNombre').value;
@@ -178,10 +209,7 @@
       const email = document.getElementById('regEmail').value;
       const password = document.getElementById('regPassword').value;
 
-      const { data: authData, error: authError } = await _supabase.auth.signUp({
-        email: email,
-        password: password,
-      });
+      const { data: authData, error: authError } = await _supabase.auth.signUp({ email, password });
 
       if (authError) {
         mostrarModal("Error en el registro", authError.message);
@@ -190,7 +218,7 @@
 
       if (authData.user) {
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
-        const codigoCasillero = `R57-${numeroAleatorio}`;
+        const codigoCasillero = `VEN-${numeroAleatorio}`;
 
         const { error: perfilError } = await _supabase.from('perfiles').insert([
           {
