@@ -189,18 +189,22 @@
     }
 
     async function actualizarPaquete(paqueteId) {
-      const peso = document.getElementById(`peso_${paqueteId}`)?->value || document.getElementById(`peso_${paqueteId}`).value;
+      const peso = document.getElementById(`peso_${paqueteId}`).value;
       const flete = document.getElementById(`flete_${paqueteId}`).value;
       const estado = document.getElementById(`estado_${paqueteId}`).value;
 
-      await _supabase.from('paquetes').update({
+      const { error } = await _supabase.from('paquetes').update({
         peso_kg: peso ? parseFloat(peso) : null,
         monto_flete: flete ? parseFloat(flete) : null,
         estado: estado
       }).eq('id', paqueteId);
 
-      alert('Paquete actualizado');
-      cargarPaquetesAdmin();
+      if (error) {
+        alert('Error al actualizar: ' + error.message);
+      } else {
+        alert('Paquete actualizado correctamente');
+        cargarPaquetesAdmin();
+      }
     }
 
     document.getElementById('btnLogout').addEventListener('click', async () => {
