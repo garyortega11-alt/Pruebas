@@ -6,52 +6,58 @@
   <title>Acceso | Ruta 57 Box</title>
   <style>
     :root {
-      --primary: #0052cc;
-      --bg: #f4f5f7;
+      --primary: #004581;
+      --primary-hover: #003360;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --text: #172b4d;
-      --accent: #de350b;
-      --success: #00875a;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --accent: #e11d48;
+      --success: #16a34a;
     }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .auth-container { width: 100%; max-width: 400px; padding: 20px; box-sizing: border-box; }
-    .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 24px; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; }
-    input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
-    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,82,204,0.2); }
-    .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; margin-top: 10px; }
-    .btn:hover { opacity: 0.9; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .auth-container { width: 100%; max-width: 440px; padding: 20px; box-sizing: border-box; }
+    .card { background: var(--card); padding: 36px 30px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    h2 { margin-top: 0; color: var(--primary); text-align: center; margin-bottom: 28px; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.875rem; color: #334155; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 1rem; color: var(--text); background-color: #fff; transition: all 0.2s; }
+    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,69,129,0.15); }
+    .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: background 0.2s; margin-top: 12px; box-shadow: 0 4px 6px -1px rgba(0,69,129,0.2); }
+    .btn:hover { background: var(--primary-hover); }
     .hidden { display: none; }
-    .toggle-text { text-align: center; margin-top: 15px; font-size: 0.9rem; color: #5e6c84; cursor: pointer; }
-    .toggle-text span { color: var(--primary); font-weight: bold; }
+    .toggle-text { text-align: center; margin-top: 22px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
+    .toggle-text span { color: var(--primary); font-weight: 600; text-decoration: underline; }
 
-    /* ESTILOS PARA MODAL PROFESIONAL */
+    /* ESTILOS PARA MODAL PROFESIONAL TIPO ZOOM */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(9, 30, 66, 0.54); display: flex; justify-content: center; align-items: center;
-      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-box {
-      background: #fff; width: 100%; max-width: 380px; padding: 24px;
-      border-radius: 12px; box-shadow: 0 8px 24px rgba(9, 30, 66, 0.25);
-      text-align: center; transform: translateY(-10px); transition: transform 0.2s ease;
+      background: #fff; width: 100%; max-width: 420px; padding: 30px;
+      border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      text-align: center; transform: scale(0.95); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .modal-overlay.active .modal-box { transform: translateY(0); }
-    .modal-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; color: var(--text); }
-    .modal-text { font-size: 0.95rem; color: #5e6c84; margin-bottom: 20px; line-height: 1.4; }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .modal-overlay.active .modal-box { transform: scale(1); }
+    .modal-icon { width: 50px; height: 50px; border-radius: 50%; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem; font-weight: bold; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+    .modal-text { font-size: 0.95rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; word-break: break-word; }
+    .modal-actions { display: flex; gap: 12px; justify-content: center; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- MODAL / POPUP PERSONALIZADO -->
+  <!-- MODAL / POPUP ESTILO ZOOM -->
   <div class="modal-overlay" id="customModal">
     <div class="modal-box">
+      <div class="modal-icon" id="modalIcon">i</div>
       <div class="modal-title" id="modalTitle">Aviso</div>
       <div class="modal-text" id="modalText">Mensaje del sistema.</div>
       <div class="modal-actions" id="modalActions">
@@ -112,12 +118,12 @@
 
   <script>
     const SUPABASE_URL = 'https://kaagiibjvcxrhxsgmusj.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iOiJhdXRoIiwiYXVkIjoiYW5vbiIsImlhdCI6MTc4ODQ1MDUyOCwiZXhwIjoyMTA0MDI2NTI4f0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthYWdpaWJqdmN4cmh4c2dtdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA1MjgsImV4cCI6MjEwNDAyNjUyOH0.mAI7kMDkkMjeBMe45_sKyKUEX2v1yBoAi4jcjsETjpc'
     
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // FUNCIONES DE MODAL PROFESIONAL
+    // FUNCIONES DE MODAL ESTILO ZOOM
     function mostrarModal(titulo, texto, callback = null) {
       document.getElementById('modalTitle').innerText = titulo;
       document.getElementById('modalText').innerText = texto;
@@ -171,7 +177,6 @@
       const email = document.getElementById('regEmail').value;
       const password = document.getElementById('regPassword').value;
 
-      // 1. Crear el usuario en Auth de Supabase
       const { data: authData, error: authError } = await _supabase.auth.signUp({
         email: email,
         password: password,
@@ -183,11 +188,9 @@
       }
 
       if (authData.user) {
-        // 2. Generar un código de casillero aleatorio
         const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
         const codigoCasillero = `R57-${numeroAleatorio}`;
 
-        // 3. Guardar los datos complementarios en la tabla 'perfiles'
         const { error: perfilError } = await _supabase.from('perfiles').insert([
           {
             id: authData.user.id,
