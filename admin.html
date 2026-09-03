@@ -189,7 +189,7 @@
     }
 
     async function actualizarPaquete(paqueteId) {
-      const peso = document.getElementById(`peso_${paqueteId}`).value;
+      const peso = document.getElementById(`peso_${paqueteId}`)?->value || document.getElementById(`peso_${paqueteId}`).value;
       const flete = document.getElementById(`flete_${paqueteId}`).value;
       const estado = document.getElementById(`estado_${paqueteId}`).value;
 
