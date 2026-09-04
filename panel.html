@@ -109,12 +109,12 @@
     <!-- Vistas de Cliente -->
     <div id="dashboard" class="view-section active">
       <div class="card">
-        <h3>Tu Dirección de Casillero en Miami</h3>
-        <p style="color: var(--muted); margin-bottom: 20px; font-size:0.92rem;">Utiliza esta dirección exacta al realizar tus compras en tiendas online de USA o el mundo.</p>
+        <h3>Tu Dirección de Recepción en Cúcuta, Colombia</h3>
+        <p style="color: var(--muted); margin-bottom: 20px; font-size:0.92rem;">Utiliza esta dirección y tu código personal al realizar compras en tiendas online de Colombia o al enviar tus paquetes desde cualquier ciudad colombiana.</p>
         
         <div class="casillero-box">
           <div>
-            <div class="field-label">Nombre del Destinatario</div>
+            <div class="field-label">Nombre / Casillero</div>
             <div class="field-value" id="lblNombre">Cargando...</div>
           </div>
           <div>
@@ -122,16 +122,16 @@
             <div class="field-value" id="lblCasillero" style="color: var(--primary);">VEN-XXXX</div>
           </div>
           <div>
-            <div class="field-label">Dirección (Address Line 1)</div>
-            <div class="field-value">7252 NW 68th St</div>
+            <div class="field-label">Dirección (Bodega Cúcuta)</div>
+            <div class="field-value">Zona Industrial / Centro (Ajustar calle y número)</div>
           </div>
           <div>
-            <div class="field-label">Ciudad, Estado, Zip</div>
-            <div class="field-value">Miami, FL 33166</div>
+            <div class="field-label">Ciudad, Departamento</div>
+            <div class="field-value">Cúcuta, Norte de Santander</div>
           </div>
           <div>
-            <div class="field-label">Teléfono de Referencia</div>
-            <div class="field-value">+1 (305) 555-0199</div>
+            <div class="field-label">Teléfono de Contacto</div>
+            <div class="field-value">+57 300 000 0000</div>
           </div>
         </div>
       </div>
@@ -143,11 +143,11 @@
         <form onsubmit="registrarPrealerta(event)">
           <div class="form-group">
             <label>Tienda o Empresa de Compra</label>
-            <input type="text" id="paqTienda" required placeholder="Ej: Amazon, Shein">
+            <input type="text" id="paqTienda" required placeholder="Ej: MercadoLibre, Shein CO, Éxito">
           </div>
           <div class="form-group">
-            <label>Número de Guía / Tracking</label>
-            <input type="text" id="paqGuia" required placeholder="Ej: 940011189956...">
+            <label>Número de Guía / Tracking (Transportadora Colombia)</label>
+            <input type="text" id="paqGuia" required placeholder="Ej: Coordinadora, Servientrega, Envia...">
           </div>
           <div class="form-group">
             <label>Valor Declarado ($ USD)</label>
@@ -216,7 +216,7 @@
         const nombreUsuario = data.nombre_completo || data.nombre || currentUser.email.split('@')[0];
         
         document.getElementById('welcomeTitle').innerText = `Hola, ${nombreUsuario}`;
-        document.getElementById('lblNombre').innerText = nombreUsuario;
+        document.getElementById('lblNombre').innerText = `${nombreUsuario} (${data.codigo_casillero || 'VEN-XXXX'})`;
         document.getElementById('lblCasillero').innerText = data.codigo_casillero || 'VEN-XXXX';
         
         document.getElementById('perfilNombre').value = nombreUsuario;
@@ -248,7 +248,7 @@
 
       const nombreUsuario = currentPerfil ? (currentPerfil.nombre_completo || currentPerfil.nombre || currentUser.email.split('@')[0]) : 'Usuario';
       document.getElementById('welcomeTitle').innerText = `Hola, ${nombreUsuario}`;
-      document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas internacionales.';
+      document.getElementById('welcomeSubtitle').innerText = 'Administra las operaciones de tus cargas de Colombia a Venezuela.';
     }
 
     async function registrarPrealerta(event) {
@@ -301,7 +301,7 @@
         <thead>
           <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.85rem;">
             <th style="padding:10px;">Tienda</th>
-            <th style="padding:10px;">Tracking / Guía</th>
+            <th style="padding:10px;">Guía / Tracking</th>
             <th style="padding:10px;">Contenido</th>
             <th style="padding:10px;">Valor</th>
             <th style="padding:10px;">Estado</th>
