@@ -262,7 +262,7 @@
         {
           user_id: currentUser.id,
           tienda: tienda,
-          guia_transportad: guia,
+          guia_transportadora: guia,
           valor_declarado: parseFloat(valor),
           contenido: contenido,
           estado: 'Pre-alertado'
@@ -312,7 +312,7 @@
       data.forEach(p => {
         html += `<tr style="border-bottom:1px solid #f1f5f9;">
           <td style="padding:12px 10px; font-weight:600;">${p.tienda || 'N/D'}</td>
-          <td style="padding:12px 10px; font-family:monospace;">${p.guia_transportad}</td>
+          <td style="padding:12px 10px; font-family:monospace;">${p.guia_transportadora || 'N/D'}</td>
           <td style="padding:12px 10px;">${p.contenido}</td>
           <td style="padding:12px 10px;">$${p.valor_declarado}</td>
           <td style="padding:12px 10px;"><span style="background:#eff6ff; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">${p.estado}</span></td>
