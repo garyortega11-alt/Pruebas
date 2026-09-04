@@ -88,7 +88,6 @@
         <div class="logo-text">Ruta 57 Box</div>
       </div>
       <div class="nav-menu" id="navMenuContainer">
-        <!-- Opciones estándar de cliente -->
         <div class="nav-item active" onclick="cambiarVista('dashboard', this)">📦 Mi Casillero</div>
         <div class="nav-item" onclick="cambiarVista('prealertar', this)">➕ Prealertar Paquete</div>
         <div class="nav-item" onclick="cambiarVista('misPaquetes', this)">📋 Mis Paquetes</div>
@@ -143,19 +142,19 @@
         <h3>Prealertar Nueva Compra</h3>
         <form onsubmit="registrarPrealerta(event)">
           <div class="form-group">
-            <label>Empresa de Envío / Courier (Ej: Amazon Logistics, UPS, FedEx)</label>
-            <input type="text" id="paqEmpresa" required placeholder="Ej: USPS">
+            <label>Tienda o Empresa de Compra</label>
+            <input type="text" id="paqTienda" required placeholder="Ej: Amazon, Shein">
           </div>
           <div class="form-group">
-            <label>Número de Tracking / Seguimiento</label>
-            <input type="text" id="paqTracking" required placeholder="Ej: 940011189956...">
+            <label>Número de Guía / Tracking</label>
+            <input type="text" id="paqGuia" required placeholder="Ej: 940011189956...">
           </div>
           <div class="form-group">
             <label>Valor Declarado ($ USD)</label>
             <input type="number" step="0.01" id="paqValor" required placeholder="45.00">
           </div>
           <div class="form-group">
-            <label>Descripción del Contenido</label>
+            <label>Contenido del Paquete</label>
             <textarea id="paqContenido" rows="3" required placeholder="Ej: 2 pares de zapatos deportivos"></textarea>
           </div>
           <button type="submit" class="btn">Registrar Prealerta</button>
@@ -211,7 +210,6 @@
       currentUser = session.user;
       document.getElementById('userEmailDisplay').innerText = currentUser.email;
 
-      // Cargar perfil y rol de la base de datos de forma segura
       const { data, err } = await _supabase.from('perfiles').select('*').eq('id', currentUser.id).maybeSingle();
       if (data) {
         currentPerfil = data;
@@ -225,7 +223,6 @@
         document.getElementById('perfilCedula').value = data.cedula || 'No registrada';
         document.getElementById('perfilEmail').value = currentUser.email;
 
-        // Si es admin, añadimos la opción en el menú lateral que redirige a admin.html
         if (data.rol === 'admin') {
           const menu = document.getElementById('navMenuContainer');
           if (!document.querySelector('.admin-link')) {
@@ -256,19 +253,19 @@
 
     async function registrarPrealerta(event) {
       event.preventDefault();
-      const empresa = document.getElementById('paqEmpresa').value;
-      const tracking = document.getElementById('paqTracking').value;
+      const tienda = document.getElementById('paqTienda').value;
+      const guia = document.getElementById('paqGuia').value;
       const valor = document.getElementById('paqValor').value;
       const contenido = document.getElementById('paqContenido').value;
 
       const { error } = await _supabase.from('paquetes').insert([
         {
           user_id: currentUser.id,
-          empresa_envio: empresa,
-          tracking: tracking,
-          valor: parseFloat(valor),
-          descripcion: contenido,
-          estatus: 'Prealertado'
+          tienda: tienda,
+          guia_transportad: guia,
+          valor_declarado: parseFloat(valor),
+          contenido: contenido,
+          estado: 'Pre-alertado'
         }
       ]);
 
@@ -276,8 +273,8 @@
         mostrarModal("Error", "No se pudo registrar la prealerta: " + error.message);
       } else {
         mostrarModal("¡Éxito!", "Tu paquete ha sido prealertado correctamente.", () => {
-          document.getElementById('paqEmpresa').value = '';
-          document.getElementById('paqTracking').value = '';
+          document.getElementById('paqTienda').value = '';
+          document.getElementById('paqGuia').value = '';
           document.getElementById('paqValor').value = '';
           document.getElementById('paqContenido').value = '';
           cambiarVista('misPaquetes', document.querySelectorAll('.nav-item')[2]);
@@ -303,22 +300,22 @@
       let html = `<table style="width:100%; border-collapse:collapse; text-align:left;">
         <thead>
           <tr style="border-bottom:2px solid #e2e8f0; color:var(--muted); font-size:0.85rem;">
-            <th style="padding:10px;">Empresa / Courier</th>
-            <th style="padding:10px;">Tracking</th>
+            <th style="padding:10px;">Tienda</th>
+            <th style="padding:10px;">Tracking / Guía</th>
             <th style="padding:10px;">Contenido</th>
             <th style="padding:10px;">Valor</th>
-            <th style="padding:10px;">Estatus</th>
+            <th style="padding:10px;">Estado</th>
           </tr>
         </thead>
         <tbody>`;
 
       data.forEach(p => {
         html += `<tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:12px 10px; font-weight:600;">${p.empresa_envio || 'N/D'}</td>
-          <td style="padding:12px 10px; font-family:monospace;">${p.tracking}</td>
-          <td style="padding:12px 10px;">${p.descripcion}</td>
-          <td style="padding:12px 10px;">$${p.valor}</td>
-          <td style="padding:12px 10px;"><span style="background:#eff6ff; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">${p.estatus}</span></td>
+          <td style="padding:12px 10px; font-weight:600;">${p.tienda || 'N/D'}</td>
+          <td style="padding:12px 10px; font-family:monospace;">${p.guia_transportad}</td>
+          <td style="padding:12px 10px;">${p.contenido}</td>
+          <td style="padding:12px 10px;">$${p.valor_declarado}</td>
+          <td style="padding:12px 10px;"><span style="background:#eff6ff; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">${p.estado}</span></td>
         </tr>`;
       });
 
