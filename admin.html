@@ -103,7 +103,7 @@
         <thead>
           <tr>
             <th>Cliente / Casillero</th>
-            <th>Guía Transportadora</th>
+            <th>Tienda / Guía</th>
             <th>Contenido</th>
             <th>Peso (Kg)</th>
             <th>Flete ($)</th>
@@ -125,7 +125,6 @@
     const { createClient } = window.supabase
     const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // FUNCIONES DE MODAL PROFESIONAL
     function mostrarModal(titulo, texto, esConfirmacion = false, onConfirmar = null) {
       document.getElementById('modalTitle').innerText = titulo;
       document.getElementById('modalText').innerText = texto;
@@ -151,7 +150,6 @@
       document.getElementById('customModal').classList.remove('active');
     }
 
-    // VALIDAR ACCESO
     async function validarAccesoAdmin() {
       try {
         const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
@@ -190,9 +188,10 @@
       if (!usuarios) return;
 
       usuarios.forEach(u => {
+        const nombreUsuario = u.nombre_completo || u.nombre || 'Sin nombre';
         tbody.innerHTML += `
           <tr>
-            <td>${u.nombre_completo || 'Sin nombre'}</td>
+            <td>${nombreUsuario}</td>
             <td>${u.cedula || 'N/A'}</td>
             <td><strong>${u.codigo_casillero || 'N/A'}</strong></td>
             <td><span style="font-weight:bold; color: ${u.rol === 'admin' ? '#36b37e' : '#6b778c'}">${u.rol}</span></td>
@@ -220,7 +219,7 @@
         const { data: paquetes, error: errorPaquetes } = await _supabase
           .from('paquetes')
           .select('*')
-          .order('id', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (errorPaquetes) {
           tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Error al consultar paquetes: ${errorPaquetes.message}</td></tr>`;
@@ -232,7 +231,7 @@
           return;
         }
 
-        const { data: perfiles } = await _supabase.from('perfiles').select('id, nombre_completo, codigo_casillero');
+        const { data: perfiles } = await _supabase.from('perfiles').select('id, nombre_completo, nombre, codigo_casillero');
         const mapaPerfiles = {};
         if (perfiles) {
           perfiles.forEach(p => { mapaPerfiles[p.id] = p; });
@@ -242,15 +241,18 @@
 
         paquetes.forEach(p => {
           const clienteInfo = mapaPerfiles[p.user_id];
-          const nombreCliente = clienteInfo ? `${clienteInfo.nombre_completo} (${clienteInfo.codigo_casillero})` : `ID: ${p.user_id ? p.user_id.substring(0,8) : 'Desconocido'}...`;
+          const nombreCliente = clienteInfo ? `${clienteInfo.nombre_completo || clienteInfo.nombre || 'Usuario'} (${clienteInfo.codigo_casillero || 'SIN CASILLERO'})` : `ID: ${p.user_id ? p.user_id.substring(0,8) : 'Desconocido'}...`;
 
           tbody.innerHTML += `
             <tr>
               <td>${nombreCliente}</td>
-              <td><strong>${p.guia_transportadora || 'Sin guía'}</strong></td>
+              <td>
+                <div style="font-size:0.82rem; color:#64748b;">Tienda: <strong>${p.tienda || 'N/D'}</strong></div>
+                <div style="font-family:monospace; font-weight:bold;">${p.guia_transportad || 'Sin guía'}</div>
+              </td>
               <td>${p.contenido || 'Sin descripción'}</td>
-              <td><input type="number" step="0.1" id="peso_${p.id}" value="${p.peso_kg || ''}" style="width:70px"></td>
-              <td><input type="number" step="0.01" id="flete_${p.id}" value="${p.monto_flete || ''}" style="width:70px"></td>
+              <td><input type="number" step="0.1" id="peso_${p.id}" value="${p.peso_kg || 0}" style="width:70px"></td>
+              <td><input type="number" step="0.01" id="flete_${p.id}" value="${p.monto_flete || 0}" style="width:70px"></td>
               <td>
                 <select id="estado_${p.id}">
                   <option value="Pre-alertado" ${p.estado === 'Pre-alertado' ? 'selected' : ''}>Pre-alertado</option>
@@ -280,8 +282,8 @@
       const estado = document.getElementById(`estado_${paqueteId}`).value;
 
       const { error } = await _supabase.from('paquetes').update({
-        peso_kg: peso ? parseFloat(peso) : null,
-        monto_flete: flete ? parseFloat(flete) : null,
+        peso_kg: peso ? parseFloat(peso) : 0,
+        monto_flete: flete ? parseFloat(flete) : 0,
         estado: estado
       }).eq('id', paqueteId);
 
